@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Booking #' + ${booking.id})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-trips">
+    <div class="band-bar">
+        <div>
+            <p class="overline overline-light">Your trip</p>
+            <h1 class="band-title">Booking #<span th:text="${booking.id}">1</span></h1>
+            <p class="band-sub">Itinerary, pricing and return status in one place.</p>
+        </div>
+        <div class="band-actions">
+            <a class="btn btn-light-vrs btn-sm-vrs" th:href="@{/bookings}"><i class="bi bi-arrow-left me-2"></i>My bookings</a>
+        </div>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card-vrs">
+                <div class="card-head">
+                    <span>Booking #<span th:text="${booking.id}">1</span></span>
+                    <span class="badge" th:classappend="'bg-' + ${booking.status.badge()}" th:text="${booking.status.label()}">S</span>
+                </div>
+                <div class="card-pad">
+                    <div class="spec-grid">
+                        <div class="spec-item"><div class="k">Customer</div><div class="v" th:text="${booker != null ? booker.fullName : '-'}">name</div></div>
+                        <div class="spec-item"><div class="k">Vehicle</div>
+                            <div class="v"><a style="color:var(--brand)" th:href="@{'/vehicles/' + ${booking.vehicleId}}" th:text="${vehicle != null ? vehicle.displayName : '-'}">vehicle</a></div></div>
+                        <div class="spec-item"><div class="k">Pickup</div><div class="v"><span th:text="${booking.pickupDate}">d</span> · <span th:text="${booking.pickupLocation}">loc</span></div></div>
+                        <div class="spec-item"><div class="k">Return (due)</div><div class="v"><span th:text="${booking.returnDate}">d</span> · <span th:text="${booking.returnLocation}">loc</span></div></div>
+                        <div class="spec-item"><div class="k">Rental days</div><div class="v" th:text="${booking.rentalDays}">3</div></div>
+                        <div class="spec-item"><div class="k">Total amount</div><div class="v" style="color:var(--brand)" th:text="'LKR ' + ${#numbers.formatDecimal(booking.totalAmount, 1, 'COMMA', 2, 'POINT')}">0</div></div>
+                        <th:block th:if="${booking.returnedDate != null}">
+                            <div class="spec-item"><div class="k">Returned on</div><div class="v" th:text="${booking.returnedDate}">d</div></div>
+                            <div class="spec-item"><div class="k">Late fine</div>
+                                <div class="v" th:classappend="${booking.fine > 0} ? 'text-danger' : 'text-success'"
+                                     th:text="${booking.fine > 0} ? 'LKR ' + ${#numbers.formatDecimal(booking.fine, 1, 'COMMA', 2, 'POINT')} : 'None — on time'">0</div></div>
+                        </th:block>
+                    </div>
+                </div>
+                <div class="card-pad d-flex gap-2 flex-wrap" style="background:#f8fafc;border-top:1px solid var(--line)" th:if="${booking.active}">
+                    <form th:action="@{'/bookings/' + ${booking.id} + '/return'}" method="post"
+                          th:if="${booking.userId == currentUser.id or isAdmin}">
+                        <button class="btn btn-ok" onclick="return confirm('Mark the vehicle as returned today?');">
+                            <i class="bi bi-box-arrow-in-left me-2"></i>Return vehicle</button>
+                    </form>
+                    <form th:action="@{'/bookings/' + ${booking.id} + '/cancel'}" method="post"
+                          th:if="${booking.userId == currentUser.id}">
+                        <button class="btn btn-danger-soft" onclick="return confirm('Cancel this booking?');">
+                            <i class="bi bi-x-circle me-2"></i>Cancel booking</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card-vrs">
+                <div class="card-head"><span><i class="bi bi-credit-card me-2"></i>Payment</span></div>
+                <div class="card-pad" th:if="${payment == null}">
+                    <p class="page-sub mb-3">No payment yet for this booking.</p>
+                    <form th:action="@{/payments/create}" method="post" th:if="${booking.userId == currentUser.id}">
+                        <input type="hidden" name="bookingId" th:value="${booking.id}">
+                        <label class="form-label">Method (simulated)</label>
+                        <select class="form-select mb-3" name="method">
+                            <option th:each="m : ${T(com.vehiclerental.payment.entity.PaymentMethod).values()}"
+                                    th:value="${m}" th:text="${m.label()}">Card</option>
+                        </select>
+                        <button class="btn btn-brand w-100">Pay LKR
+                            <span th:text="${#numbers.formatDecimal(booking.totalAmount + booking.fine, 1, 'COMMA', 2, 'POINT')}">0</span></button>
+                    </form>
+                </div>
+                <div class="card-pad" th:if="${payment != null}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <b th:text="${payment.transactionReference}">TXN</b>
+                        <span class="badge" th:classappend="'bg-' + ${payment.status.badge()}" th:text="${payment.status.label()}">S</span>
+                    </div>
+                    <p class="page-sub mb-3" th:text="'LKR ' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 2, 'POINT')} + ' via ' + ${payment.method.label()}">amount</p>
+                    <a class="btn btn-line btn-sm-vrs" th:href="@{'/payments/' + ${payment.id}}">View payment</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

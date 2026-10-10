@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Bookings')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-trips">
+    <div class="band-bar">
+        <div>
+            <p class="overline overline-light">Your trips</p>
+            <h1 class="band-title">My Bookings</h1>
+            <p class="band-sub">Every rental you have made with us - open a row for the full itinerary, payment and fines.</p>
+        </div>
+        <div class="band-actions">
+            <a class="btn btn-brand" th:href="@{/bookings/new}"><i class="bi bi-plus-lg me-2"></i>New booking</a>
+        </div>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table-vrs">
+                <thead>
+                <tr><th>#</th><th>Vehicle</th><th>Pickup</th><th>Return</th><th>Route</th><th>Days</th><th>Total</th><th>Fine</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${bookings}">
+                    <td><b th:text="${b.id}">1</b></td>
+                    <td th:text="${vehicleNames.get(b.id)}">Vehicle</td>
+                    <td th:text="${b.pickupDate}">d1</td>
+                    <td th:text="${b.returnDate}">d2</td>
+                    <td th:text="${b.pickupLocation} + ' → ' + ${b.returnLocation}">A → B</td>
+                    <td th:text="${b.rentalDays}">3</td>
+                    <td style="font-weight:800" th:text="'LKR ' + ${#numbers.formatDecimal(b.totalAmount, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td th:text="${b.fine > 0} ? 'LKR ' + ${#numbers.formatDecimal(b.fine, 1, 'COMMA', 2, 'POINT')} : '—'">0</td>
+                    <td><span class="badge" th:classappend="'bg-' + ${b.status.badge()}" th:text="${b.status.label()}">S</span></td>
+                    <td><a class="btn btn-line btn-sm-vrs" th:href="@{'/bookings/' + ${b.id}}">Open</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(bookings)}"><td colspan="10" style="padding:44px;text-align:center;color:var(--muted)">
+                    No bookings yet — <a th:href="@{/bookings/new}" style="color:var(--brand);font-weight:800">book your first vehicle</a></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

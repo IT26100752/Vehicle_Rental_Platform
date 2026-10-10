@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('New Booking')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<div class="band-photo bg-trips">
+    <div class="band-photo-inner">
+        <p class="hero-kicker"><span>Step 1 of 2</span><span class="kick-pill">VRS</span><span>Instant estimate</span></p>
+        <h1 class="band-title">Plan your trip, <em>pay a fair price.</em></h1>
+        <p class="band-sub">Pick your ride and dates - the server confirms the final price
+            after member discounts.</p>
+    </div>
+</div>
+
+<main class="container-vrs pull-up">
+    <div class="card-vrs mx-auto" style="max-width:720px">
+        <div class="card-pad p-4">
+            <form th:action="@{/bookings/create}" method="post" onsubmit="return checkDates()">
+                <div class="mb-4">
+                    <label class="form-label" for="vehicleId">Vehicle *</label>
+                    <select class="form-select" id="vehicleId" name="vehicleId" required onchange="updatePrice()">
+                        <option value="">-- choose an available vehicle --</option>
+                        <option th:each="v : ${vehicles}" th:value="${v.id}"
+                                th:attr="data-price=${v.pricePerDay}"
+                                th:selected="${selectedVehicleId != null and selectedVehicleId == v.id}"
+                                th:text="${v.displayName + ' - ' + v.type.label() + ' - LKR ' + #numbers.formatDecimal(v.pricePerDay, 1, 'COMMA', 0, 'POINT') + '/day'}">Vehicle</option>
+                    </select>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="pickupDate">Pickup date *</label>
+                        <input class="form-control" type="date" id="pickupDate" name="pickupDate" th:min="${today}" required onchange="updatePrice()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="returnDate">Return date *</label>
+                        <input class="form-control" type="date" id="returnDate" name="returnDate" th:min="${today}" required onchange="updatePrice()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="pickupLocation">Pickup location *</label>
+                        <input class="form-control" id="pickupLocation" name="pickupLocation" placeholder="Colombo" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="returnLocation">Return location *</label>
+                        <input class="form-control" id="returnLocation" name="returnLocation" placeholder="Colombo" required>
+                    </div>
+                </div>
+                <div class="estimate-box mt-4">
+                    <i class="bi bi-calculator me-2"></i>Estimate: <span id="estimate">choose a vehicle and dates</span>
+                    <div class="form-text mt-1" style="color:#9a3412">Final total is calculated on the server:
+                        premium customers (3+ days) get 10% off, 7+ days get another 5%, Saturday pickups get 2% off.</div>
+                </div>
+                <button class="btn btn-brand w-100 mt-4" type="submit"><i class="bi bi-check-lg me-2"></i>Confirm booking</button>
+            </form>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    /* client-side estimate - mirrors the server-side StandardPricing */
+    function updatePrice() {
+        const sel = document.getElementById('vehicleId');
+        const opt = sel.options[sel.selectedIndex];
+        const p = document.getElementById('pickupDate').value;
+        const r = document.getElementById('returnDate').value;
+        const out = document.getElementById('estimate');
+        if (!opt || !opt.dataset.price || !p || !r) { out.textContent = 'choose a vehicle and dates'; return; }
+        const days = Math.max(1, Math.round((new Date(r) - new Date(p)) / 86400000));
+        out.textContent = days + ' day(s) x LKR ' + Number(opt.dataset.price).toLocaleString() +
+            ' = LKR ' + (days * opt.dataset.price).toLocaleString();
+    }
+    function checkDates() {
+        const p = document.getElementById('pickupDate').value;
+        const r = document.getElementById('returnDate').value;
+        if (p && r && r <= p) { alert('Return date must be after the pickup date'); return false; }
+        return true;
+    }
+</script>
+</body>
+</html>
