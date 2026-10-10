@@ -1,0 +1,10 @@
+# build output
+target/
+# IntelliJ project files
+.idea/
+*.iml
+# OS junk
+Thumbs.db
+.DS_Store
+# JSON file-storage data
+data/

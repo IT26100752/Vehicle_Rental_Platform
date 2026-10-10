@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="band-photo bg-trips">
+    <div class="band-center error-wrap error-photo">
+        <div class="error-code"><b th:text="${status}">404</b></div>
+        <p class="overline">Wrong turn</p>
+        <h2 class="page-title" th:text="${detail}">Something went wrong</h2>
+        <p class="page-sub mx-auto" style="max-width:46ch">Head back to the fleet and try again. If it keeps happening, check the application console for the stack trace.</p>
+        <div class="d-flex gap-2 justify-content-center mt-4">
+            <a class="btn btn-brand" th:href="@{/vehicles}"><i class="bi bi-car-front me-2"></i>Back to vehicles</a>
+            <a class="btn btn-line" th:href="@{/login}">Login</a>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
