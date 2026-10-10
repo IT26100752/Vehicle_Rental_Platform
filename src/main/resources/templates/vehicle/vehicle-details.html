@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${vehicle.brand + ' ' + vehicle.model})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo">
+    <div class="band-bar">
+        <div>
+            <p class="overline overline-light">Fleet showcase</p>
+            <h1 class="band-title" th:text="${vehicle.displayName}">Vehicle</h1>
+            <p class="band-sub"><span class="star" th:text="${avgRating > 0 ? avgRating + ' / 5' : 'Not rated yet'}">★</span>
+                &middot; <span th:text="${#lists.size(reviews)}">0</span> reviews</p>
+        </div>
+        <div class="band-actions">
+            <a class="btn btn-light-vrs btn-sm-vrs" th:href="@{/vehicles}"><i class="bi bi-arrow-left me-2"></i>All vehicles</a>
+        </div>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+    <div class="detail-hero">
+        <div class="detail-media position-relative">
+            <img th:with="img=${(vehicle.imageUrl != null and !vehicle.imageUrl.isEmpty() and !vehicle.imageUrl.endsWith('.svg'))
+                                 ? vehicle.imageUrl : '/images/photos/' + #strings.toLowerCase(vehicle.type.name()) + '.jpg'}"
+                 th:src="@{${img}}"
+                 th:alt="${vehicle.brand}">
+            <span class="badge position-absolute top-0 end-0 m-3"
+                  th:classappend="'bg-' + ${vehicle.status.badge()}" th:text="${vehicle.status.label()}">Status</span>
+        </div>
+
+        <div class="detail-side">
+            <div class="card-vrs">
+                <div class="card-pad">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <h1 style="font-size:22px" th:text="${vehicle.displayName}">2019 Toyota Axio (CBA-1234)</h1>
+                            <div class="mt-1">
+                                <span class="star" th:text="${avgRating > 0 ? avgRating : '★★★★☆'}">★</span>
+                                <span class="page-sub" style="display:inline" th:text="${avgRating > 0 ? avgRating + ' / 5' : 'No approved reviews yet'}"></span>
+                                <span class="page-sub" style="display:inline"> &middot; <span th:text="${#lists.size(reviews)}">0</span> reviews</span>
+                            </div>
+                        </div>
+                        <span class="pill pill-brand" th:text="${vehicle.type.label()}">Car</span>
+                    </div>
+                    <div class="price-tag mt-3" style="font-size:24px">Rs. <span th:text="${#numbers.formatDecimal(vehicle.pricePerDay, 1, 'COMMA', 0, 'POINT')}">0</span><small> / Day</small></div>
+                    <div class="spec-line mt-3">
+                        <span class="chip"><i class="bi bi-people"></i><span th:text="${vehicle.seats} + ' seats'">5 seats</span></span>
+                        <span class="chip"><i class="bi bi-fuel-pump"></i><span th:text="${vehicle.fuelType.label()}">Petrol</span></span>
+                        <span class="chip"><i class="bi bi-gear"></i><span th:text="${vehicle.transmission.label()}">Auto</span></span>
+                        <span class="chip"><i class="bi bi-calendar3"></i><span th:text="${vehicle.year}">2019</span></span>
+                    </div>
+                    <div class="d-grid gap-2 mt-3">
+                        <a class="btn btn-ok" th:if="${vehicle.available}" th:href="@{/bookings/new(vehicleId=${vehicle.id})}">
+                            <i class="bi bi-calendar-plus me-2"></i>Book this vehicle</a>
+                        <div class="estimate-box" th:if="${activeBooking != null}">
+                            <i class="bi bi-hourglass-split me-2"></i>Currently rented until <span th:text="${activeBooking.returnDate}">date</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-line"><span class="k">Vehicle number</span><span class="v" th:text="${vehicle.vehicleNumber}">CBA-1234</span></div>
+                <div class="row-line"><span class="k">Capacity</span><span class="v" th:text="${vehicle.capacityInfo()}">specs</span></div>
+                <div class="row-line"><span class="k">Rent mode</span><span class="v"><span class="chip"><i class="bi bi-key"></i>Self-drive</span></span></div>
+            </div>
+
+            <div class="card-vrs" th:if="${isAdmin}">
+                <div class="card-head"><span><i class="bi bi-shield-lock me-2"></i>Admin actions</span></div>
+                <div class="card-pad d-flex flex-wrap gap-2">
+                    <a class="btn btn-line btn-sm-vrs" th:href="@{'/vehicles/' + ${vehicle.id} + '/edit'}"><i class="bi bi-pencil me-1"></i>Edit</a>
+                    <form class="d-inline" th:each="st : ${T(com.vehiclerental.vehicle.entity.VehicleStatus).values()}"
+                          th:action="@{'/vehicles/' + ${vehicle.id} + '/status'}" method="post">
+                        <input type="hidden" name="status" th:value="${st}">
+                        <button class="btn btn-warn-soft btn-sm-vrs" th:text="${st.label()}">Set</button>
+                    </form>
+                    <form class="d-inline" th:action="@{'/vehicles/' + ${vehicle.id} + '/delete'}" method="post"
+                          onsubmit="return confirm('Delete this vehicle permanently?');">
+                        <button class="btn btn-danger-soft btn-sm-vrs"><i class="bi bi-trash me-1"></i>Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-vrs">
+        <div class="card-head">
+            <span><i class="bi bi-chat-square-text me-2"></i>Traveller reviews (<span th:text="${#lists.size(reviews)}">0</span>)</span>
+        </div>
+        <div th:each="r : ${reviews}" class="list-line" style="display:block">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="star" th:text="${r.stars}">★★★★★</span>
+                <span class="page-sub" th:text="${r.reviewDate}">date</span>
+            </div>
+            <div class="mt-1" style="font-weight:600" th:text="${r.comment}">comment</div>
+        </div>
+        <div class="list-line" th:if="${#lists.isEmpty(reviews)}" style="color:var(--muted)">No approved reviews yet - be the first!</div>
+        <div class="card-pad" style="background:var(--bg);border-top:1px solid var(--line)" th:if="${currentUser != null}">
+            <form th:action="@{/reviews}" method="post" class="row g-2 align-items-end">
+                <input type="hidden" name="vehicleId" th:value="${vehicle.id}">
+                <div class="col-md-3">
+                    <label class="form-label">Rating</label>
+                    <select class="form-select" name="rating" required>
+                        <option value="5">★★★★★ (5)</option><option value="4">★★★★☆ (4)</option>
+                        <option value="3">★★★☆☆ (3)</option><option value="2">★★☆☆☆ (2)</option>
+                        <option value="1">★☆☆☆☆ (1)</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Your review</label>
+                    <input class="form-control" name="comment" placeholder="How was the ride?" required>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-ok w-100">Submit</button>
+                </div>
+            </form>
+            <div class="form-text mt-2">Reviews appear publicly after admin approval.</div>
+        </div>
+        <div class="card-pad" style="background:var(--bg);border-top:1px solid var(--line)" th:if="${currentUser == null}">
+            <a th:href="@{/login}" style="color:var(--brand-2);font-weight:700">Login</a>
+            <span class="page-sub"> to write a review.</span>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
