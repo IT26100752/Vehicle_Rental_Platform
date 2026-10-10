@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Manage Fleet')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<main class="container-vrs">
+    <div class="page-head">
+        <div>
+            <p class="overline">Admin</p>
+            <h2 class="page-title">Manage Fleet</h2>
+            <p class="page-sub">Add, edit and remove vehicles.</p>
+        </div>
+        <a class="btn btn-navy" th:href="@{/vehicles/add}"><i class="bi bi-plus-lg me-2"></i>Add vehicle</a>
+    </div>
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table-vrs">
+                <thead>
+                <tr><th>#</th><th>Vehicle</th><th>Type</th><th>Plate</th><th>Price / day</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${vehicles}">
+                    <td><b th:text="${v.id}">1</b></td>
+                    <td th:text="${v.brand + ' ' + v.model + ' (' + v.year + ')'}">Toyota Axio</td>
+                    <td><span class="pill pill-brand" th:text="${v.type.label()}">Car</span></td>
+                    <td><code th:text="${v.vehicleNumber}">CBA-1234</code></td>
+                    <td style="font-weight:800" th:text="'LKR ' + ${#numbers.formatDecimal(v.pricePerDay, 1, 'COMMA', 0, 'POINT')}">0</td>
+                    <td><span class="badge" th:classappend="'bg-' + ${v.status.badge()}" th:text="${v.status.label()}">S</span></td>
+                    <td class="text-end">
+                        <a class="btn btn-line btn-sm-vrs" th:href="@{'/vehicles/' + ${v.id}}">View</a>
+                        <a class="btn btn-line btn-sm-vrs" th:href="@{'/vehicles/' + ${v.id} + '/edit'}">Edit</a>
+                        <form class="d-inline" th:action="@{'/vehicles/' + ${v.id} + '/delete'}" method="post"
+                              onsubmit="return confirm('Delete this vehicle permanently?');">
+                            <button class="btn btn-danger-soft btn-sm-vrs">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(vehicles)}"><td colspan="7" style="padding:44px;text-align:center;color:var(--muted)">No vehicles yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
