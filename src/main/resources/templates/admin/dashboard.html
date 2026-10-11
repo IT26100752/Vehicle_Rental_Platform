@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-fleet">
+    <div class="band-bar">
+        <div>
+            <p class="overline overline-light">Control room</p>
+            <h1 class="band-title">Admin Dashboard</h1>
+            <p class="band-sub">Live statistics, re-computed from the same services every module uses.</p>
+        </div>
+        <div class="band-actions">
+            <a class="btn btn-brand" th:href="@{/reviews/moderation}"><i class="bi bi-chat-square-text me-2"></i>Moderate reviews</a>
+        </div>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+
+    <div class="stat-grid">
+        <div class="stat-card"><div class="stat-ico ico-navy"><i class="bi bi-people-fill"></i></div>
+            <div><div class="stat-num" th:text="${stats.userCount}">0</div><div class="stat-lbl">Registered users</div></div></div>
+        <div class="stat-card"><div class="stat-ico ico-brand"><i class="bi bi-car-front-fill"></i></div>
+            <div><div class="stat-num" th:text="${stats.vehicleCount}">0</div><div class="stat-lbl">Vehicles in fleet</div></div></div>
+        <div class="stat-card"><div class="stat-ico ico-warn"><i class="bi bi-calendar-check-fill"></i></div>
+            <div><div class="stat-num" th:text="${stats.bookingCount}">0</div><div class="stat-lbl">Total bookings</div></div></div>
+        <div class="stat-card"><div class="stat-ico ico-ok"><i class="bi bi-cash-coin"></i></div>
+            <div><div class="stat-num" th:text="'LKR ' + ${#numbers.formatDecimal(stats.revenue, 1, 'COMMA', 0, 'POINT')}">0</div><div class="stat-lbl">Revenue (completed)</div></div></div>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-lg-4">
+            <div class="card-vrs h-100">
+                <div class="card-head"><span><i class="bi bi-truck me-2"></i>Fleet by type</span></div>
+                <div class="list-line" th:each="entry : ${stats.fleetByType}">
+                    <span th:text="${entry.key}">Car</span>
+                    <span class="pill pill-brand" th:text="${entry.value}">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-vrs h-100">
+                <div class="card-head"><span><i class="bi bi-activity me-2"></i>Quick numbers</span></div>
+                <div class="list-line"><span>Active rentals</span><span class="pill pill-info" th:text="${stats.activeBookings}">0</span></div>
+                <div class="list-line"><span>Reviews waiting</span><span class="pill pill-warn" th:text="${stats.pendingReviews}">0</span></div>
+                <div class="card-pad" style="background:#f8fafc;border-top:1px solid var(--line)">
+                    <a class="btn btn-line w-100" th:href="@{/users}"><i class="bi bi-people me-2"></i>Manage users</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card-vrs h-100">
+                <div class="card-head"><span><i class="bi bi-clock-history me-2"></i>Recent bookings</span></div>
+                <div class="list-line" th:each="b : ${stats.recentBookings}">
+                    <span><a style="color:var(--brand);font-weight:800" th:href="@{'/bookings/' + ${b.id}}" th:text="'#' + ${b.id}">#1</a>
+                        <span class="page-sub ms-1"><span th:text="${b.pickupDate}">d</span> → <span th:text="${b.returnDate}">d</span></span></span>
+                    <span class="badge" th:classappend="'bg-' + ${b.status.badge()}" th:text="${b.status.label()}">Active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
