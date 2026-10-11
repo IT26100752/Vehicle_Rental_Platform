@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Vehicles')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<div class="hero-photo">
+    <div class="hero-photo-inner">
+        <p class="hero-kicker"><span>Self-drive rentals</span><span class="kick-pill">VRS</span><span>Island-wide support</span></p>
+        <h1 class="hero-display">Every road in Sri Lanka, <em>ready when you are.</em></h1>
+        <p class="hero-sub-photo">Search the fleet, compare prices and book in under two minutes.
+            Every vehicle is inspected, insured and ready to roll.</p>
+        <div class="hero-chips">
+            <span class="hero-chip"><i class="bi bi-shield-check me-1"></i>Insured fleet</span>
+            <span class="hero-chip"><i class="bi bi-cash-coin me-1"></i>Transparent pricing</span>
+            <span class="hero-chip"><i class="bi bi-headset me-1"></i>24/7 support</span>
+        </div>
+
+        <form class="hero-search" th:action="@{/vehicles}" method="get">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <span class="overline mb-0">Find your perfect ride</span>
+                <div class="seg-control">
+                    <label class="seg-item">
+                        <input type="radio" name="type" value="" th:checked="${type == null}">
+                        <span><i class="bi bi-grid-3x3-gap"></i>All</span>
+                    </label>
+                    <label class="seg-item" th:each="t : ${types}">
+                        <input type="radio" name="type" th:value="${t}" th:checked="${type != null and type == t}">
+                        <span th:text="${t.label()}">Car</span>
+                    </label>
+                </div>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-8">
+                    <input class="form-control" name="keyword" th:value="${keyword}" placeholder="Search brand, model or plate number">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-brand flex-grow-1"><i class="bi bi-search me-2"></i>Search</button>
+                    <a class="btn btn-line" th:href="@{/vehicles}">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<main class="container-vrs">
+    <div class="tile-grid">
+        <a class="tile" th:each="t : ${types}" th:href="@{/vehicles(type=${t})}">
+            <span class="tile-ico">
+                <i class="bi" th:classappend="${t.name() == 'CAR'} ? 'bi-car-front' : (${t.name() == 'VAN'} ? 'bi-bus-front' : (${t.name() == 'BIKE'} ? 'bi-bicycle' : 'bi-truck'))"></i>
+            </span>
+            <span><b th:text="${t.label()} + 's'">Cars</b>
+            <small>Browse fleet</small></span>
+        </a>
+    </div>
+
+    <div class="page-head">
+        <div>
+            <p class="overline">Available now</p>
+            <h2 class="page-title" th:text="${#lists.size(vehicles)} + (${#lists.size(vehicles)} == 1 ? ' vehicle' : ' vehicles') + ' found'">Fleet</h2>
+        </div>
+        <a class="btn btn-navy" th:if="${isAdmin}" th:href="@{/vehicles/add}"><i class="bi bi-plus-lg me-2"></i>Add vehicle</a>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-4" th:each="v : ${vehicles}">
+            <div class="card-vrs vcard">
+                <div class="vcard-media">
+                    <img th:with="img=${(v.imageUrl != null and !v.imageUrl.isEmpty() and !v.imageUrl.endsWith('.svg'))
+                                 ? v.imageUrl : '/images/photos/' + #strings.toLowerCase(v.type.name()) + '.jpg'}"
+                         th:src="@{${img}}"
+                         th:alt="${v.brand}">
+                    <span class="badge position-absolute top-0 end-0 m-3"
+                          th:classappend="'bg-' + ${v.status.badge()}" th:text="${v.status.label()}">Status</span>
+                </div>
+                <div class="vcard-body">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <h3 class="v-title" th:text="${v.brand + ' ' + v.model}">Brand Model</h3>
+                            <div class="v-sub"><span th:text="${v.vehicleNumber}">CBA-1234</span> &middot; <span th:text="${v.year}">2020</span></div>
+                        </div>
+                        <span class="pill pill-brand" th:text="${v.type.label()}">Car</span>
+                    </div>
+                    <div class="spec-line">
+                        <span class="chip"><i class="bi bi-fuel-pump"></i><span th:text="${v.fuelType.label()}">Petrol</span></span>
+                        <span class="chip"><i class="bi bi-gear"></i><span th:text="${v.transmission.label()}">Auto</span></span>
+                        <span class="chip"><i class="bi bi-people"></i><span th:text="${v.seats} + ' seats'">5 seats</span></span>
+                    </div>
+                    <div class="spec-line plain"><i class="bi bi-info-circle me-1"></i><span th:text="${v.capacityInfo()}">specs</span></div>
+                </div>
+                <div class="vcard-footer">
+                    <div class="price-tag">Rs. <span th:text="${#numbers.formatDecimal(v.pricePerDay, 1, 'COMMA', 0, 'POINT')}">0</span><small> / Day</small></div>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-line btn-sm-vrs" th:href="@{'/vehicles/' + ${v.id}}">Details</a>
+                        <a class="btn btn-ok btn-sm-vrs" th:if="${v.available}"
+                           th:href="@{/bookings/new(vehicleId=${v.id})}">Book now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12" th:if="${#lists.isEmpty(vehicles)}">
+            <div class="empty-box"><i class="bi bi-search fs-3 d-block mb-2"></i>No vehicles match your search - try clearing the filters.</div>
+        </div>
+    </div>
+
+    <div class="page-head" style="margin-top:34px">
+        <div>
+            <p class="overline">How it works</p>
+            <h2 class="page-title" style="font-size:24px">Three steps to the road</h2>
+        </div>
+    </div>
+    <div class="steps">
+        <div class="step"><span class="step-n">1</span><b>Search &amp; pick</b>
+            <p>Filter the fleet by type or keyword and open the vehicle page for full specs and reviews.</p></div>
+        <div class="step"><span class="step-n">2</span><b>Book &amp; pay</b>
+            <p>Choose your dates, get an instant estimate and confirm payment - cash, card or online.</p></div>
+        <div class="step"><span class="step-n">3</span><b>Drive &amp; return</b>
+            <p>Pick up the keys, enjoy the trip and return on time. Fines only apply for late returns.</p></div>
+    </div>
+
+    <div class="band-vrs">
+        <div class="band-copy">
+            <p class="overline">Members drive further</p>
+            <h2>Looking for a ride of your own?</h2>
+            <p>Create a free account and unlock premium pricing: 10% off on 3+ day rentals,
+                an extra 5% off on a week or more, and 2% off Saturday pickups.</p>
+            <a class="btn btn-light-vrs" th:if="${currentUser == null}" th:href="@{/register}"><i class="bi bi-person-plus me-2"></i>Get started</a>
+            <a class="btn btn-light-vrs" th:if="${currentUser != null and !isAdmin}" th:href="@{/bookings/new}"><i class="bi bi-calendar-plus me-2"></i>New booking</a>
+            <a class="btn btn-light-vrs" th:if="${isAdmin}" th:href="@{/admin}"><i class="bi bi-speedometer2 me-2"></i>Admin dashboard</a>
+        </div>
+        <div class="band-img"></div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

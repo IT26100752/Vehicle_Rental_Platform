@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${vehicle != null ? 'Edit Vehicle' : 'Add Vehicle'})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-fleet">
+    <div class="band-bar">
+        <div>
+            <p class="overline overline-light">Fleet management</p>
+            <h1 class="band-title" th:text="${vehicle != null ? 'Edit vehicle #' + vehicle.id : 'Add a new vehicle'}">Add vehicle</h1>
+            <p class="band-sub">Type-specific fields appear as soon as you pick a vehicle type.</p>
+        </div>
+        <div class="band-actions">
+            <a class="btn btn-light-vrs" th:href="@{/vehicles}"><i class="bi bi-x-lg me-2"></i>Cancel</a>
+        </div>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+
+    <div class="card-vrs mx-auto" style="max-width:880px">
+        <div class="card-pad p-4">
+            <form th:action="${vehicle != null} ? @{'/vehicles/' + ${vehicle.id} + '/update'} : @{/vehicles/save}" method="post">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="vehicleType">Vehicle type *</label>
+                        <select class="form-select" id="vehicleType" name="vehicleType" required onchange="showTypeFields()">
+                            <option th:each="t : ${types}" th:value="${t}" th:text="${t.label()}"
+                                    th:selected="${vehicle != null and vehicle.type == t}">Car</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="vehicleNumber">Vehicle number *</label>
+                        <input class="form-control" id="vehicleNumber" name="vehicleNumber"
+                               th:value="${vehicle != null} ? ${vehicle.vehicleNumber} : ''" placeholder="CBA-1234" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="brand">Brand *</label>
+                        <input class="form-control" id="brand" name="brand" th:value="${vehicle != null} ? ${vehicle.brand} : ''" placeholder="Toyota" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="model">Model *</label>
+                        <input class="form-control" id="model" name="model" th:value="${vehicle != null} ? ${vehicle.model} : ''" placeholder="Axio" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="year">Year *</label>
+                        <input class="form-control" type="number" id="year" name="year" min="1990" max="2030"
+                               th:value="${vehicle != null} ? ${vehicle.year} : 2022" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="pricePerDay">Price per day (LKR) *</label>
+                        <input class="form-control" type="number" step="0.01" min="1" id="pricePerDay" name="pricePerDay"
+                               th:value="${vehicle != null} ? ${vehicle.pricePerDay} : ''" placeholder="8500" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="fuelType">Fuel *</label>
+                        <select class="form-select" id="fuelType" name="fuelType" required>
+                            <option th:each="f : ${fuels}" th:value="${f}" th:text="${f.label()}"
+                                    th:selected="${vehicle != null and vehicle.fuelType == f}">Petrol</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="transmission">Transmission *</label>
+                        <select class="form-select" id="transmission" name="transmission" required>
+                            <option th:each="g : ${gears}" th:value="${g}" th:text="${g.label()}"
+                                    th:selected="${vehicle != null and vehicle.transmission == g}">Automatic</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="seats">Seats *</label>
+                        <input class="form-control" type="number" min="1" max="60" id="seats" name="seats"
+                               th:value="${vehicle != null} ? ${vehicle.seats} : 5" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="status">Availability *</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label()}"
+                                    th:selected="${vehicle != null and vehicle.status == s}">Available</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label" for="imageUrl">Image URL (optional)</label>
+                        <input class="form-control" id="imageUrl" name="imageUrl"
+                               th:value="${vehicle != null} ? ${vehicle.imageUrl} : ''" placeholder="/images/photos/car.jpg">
+                    </div>
+                </div>
+
+                <div class="mt-4 mb-3" style="border-top:1px solid var(--line);padding-top:20px">
+                    <p class="overline mb-2">Type-specific details</p>
+                </div>
+                <div class="row g-3" id="typeFields">
+                    <div class="col-md-6 type-field" data-type="CAR">
+                        <label class="form-label" for="doorCount">Door count</label>
+                        <input class="form-control" type="number" min="0" id="doorCount" name="doorCount"
+                               th:value="${vehicle != null and vehicle.type.name() == 'CAR'} ? ${vehicle.doorCount} : 4">
+                    </div>
+                    <div class="col-md-6 type-field" data-type="CAR">
+                        <label class="form-label" for="bootCapacityLiters">Boot capacity (liters)</label>
+                        <input class="form-control" type="number" min="0" id="bootCapacityLiters" name="bootCapacityLiters"
+                               th:value="${vehicle != null and vehicle.type.name() == 'CAR'} ? ${vehicle.bootCapacityLiters} : 400">
+                    </div>
+                    <div class="col-md-6 type-field" data-type="VAN">
+                        <label class="form-label" for="cargoCapacityKg">Cargo capacity (kg)</label>
+                        <input class="form-control" type="number" step="0.01" min="0" id="cargoCapacityKg" name="cargoCapacityKg"
+                               th:value="${vehicle != null and vehicle.type.name() == 'VAN'} ? ${vehicle.cargoCapacityKg} : 800">
+                    </div>
+                    <div class="col-md-6 type-field" data-type="VAN">
+                        <label class="form-label" for="hasAc">Air conditioning</label>
+                        <select class="form-select" id="hasAc" name="hasAc">
+                            <option value="true" th:selected="${vehicle == null or vehicle.type.name() != 'VAN' or vehicle.hasAc}">Yes</option>
+                            <option value="false" th:selected="${vehicle != null and vehicle.type.name() == 'VAN' and !vehicle.hasAc}">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 type-field" data-type="BIKE">
+                        <label class="form-label" for="engineCc">Engine (cc)</label>
+                        <input class="form-control" type="number" min="0" id="engineCc" name="engineCc"
+                               th:value="${vehicle != null and vehicle.type.name() == 'BIKE'} ? ${vehicle.engineCc} : 125">
+                    </div>
+                    <div class="col-md-6 type-field" data-type="BIKE">
+                        <label class="form-label" for="helmetProvided">Helmet provided</label>
+                        <select class="form-select" id="helmetProvided" name="helmetProvided">
+                            <option value="true" th:selected="${vehicle == null or vehicle.type.name() != 'BIKE' or vehicle.helmetProvided}">Yes</option>
+                            <option value="false" th:selected="${vehicle != null and vehicle.type.name() == 'BIKE' and !vehicle.helmetProvided}">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 type-field" data-type="TRUCK">
+                        <label class="form-label" for="maxLoadKg">Max load (kg)</label>
+                        <input class="form-control" type="number" step="0.01" min="0" id="maxLoadKg" name="maxLoadKg"
+                               th:value="${vehicle != null and vehicle.type.name() == 'TRUCK'} ? ${vehicle.maxLoadKg} : 3000">
+                    </div>
+                    <div class="col-md-6 type-field" data-type="TRUCK">
+                        <label class="form-label" for="bodyKind">Body kind</label>
+                        <input class="form-control" id="bodyKind" name="bodyKind"
+                               th:value="${vehicle != null and vehicle.type.name() == 'TRUCK'} ? ${vehicle.bodyKind} : 'box'" placeholder="box / flatbed / tipper">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-brand flex-grow-1" type="submit">
+                        <i class="bi bi-save me-2"></i><span th:text="${vehicle != null ? 'Save changes' : 'Add vehicle'}">Save</span></button>
+                    <a class="btn btn-line" th:href="@{/vehicles}">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+    /* Show only the fields belonging to the selected subclass (client-side JS) */
+    function showTypeFields() {
+        const type = document.getElementById('vehicleType').value;
+        document.querySelectorAll('.type-field').forEach(f => {
+            f.style.display = (f.dataset.type === type) ? '' : 'none';
+        });
+    }
+    showTypeFields();
+</script>
+</body>
+</html>
