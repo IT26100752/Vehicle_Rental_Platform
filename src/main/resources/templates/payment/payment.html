@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Checkout')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-wallet">
+    <div class="band-center">
+        <p class="hero-kicker"><span>Secure checkout</span><span class="kick-pill">VRS</span><span>Simulated gateway</span></p>
+        <h1 class="band-title">Checkout, <em>minus the surprises.</em></h1>
+        <p class="band-sub">SE1020 course rule: payments are simulated - no real gateway is called.</p>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+    <div class="card-vrs mx-auto" style="max-width:500px;width:100%">
+        <div class="card-pad p-4 text-center">
+            <div style="width:76px;height:76px;border-radius:24px;background:var(--brand-grad);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:1.9rem;color:#fff;box-shadow:0 10px 24px rgba(255,92,28,.4)">
+                <i class="bi bi-credit-card-fill"></i>
+            </div>
+            <p class="overline">Secure checkout</p>
+            <h4 style="font-weight:800">Simulated payment</h4>
+            <p class="page-sub mb-4">SE1020 course rule: payments are simulated — no real gateway is called.</p>
+
+            <div style="background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:6px 18px;text-align:left">
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Booking</span>
+                    <a style="color:var(--brand);font-weight:800" th:href="@{'/bookings/' + ${payment.bookingId}}" th:text="'#' + ${payment.bookingId}">#1</a></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Vehicle</span>
+                    <span style="font-weight:700" th:text="${vehicle != null ? vehicle.displayName : '-'}">vehicle</span></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Rental</span>
+                    <span style="font-weight:700"><span th:text="${booking.pickupDate}">d</span> → <span th:text="${booking.returnDate}">d</span></span></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)" th:if="${booking.fine > 0}"><span class="page-sub">Late fine</span>
+                    <span style="font-weight:800;color:var(--danger)" th:text="'LKR ' + ${#numbers.formatDecimal(booking.fine, 1, 'COMMA', 2, 'POINT')}">0</span></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Method</span>
+                    <span class="pill pill-info" th:text="${payment.method.label()}">Card</span></div>
+                <div class="list-line"><span class="page-sub">Reference</span>
+                    <code th:text="${payment.transactionReference}">TXN</code></div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4 px-2">
+                <span class="page-sub" style="font-weight:800">Total due</span>
+                <span class="price-tag" style="font-size:1.5rem;color:var(--brand)"
+                      th:text="'LKR ' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 2, 'POINT')}">0</span>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <form th:action="@{'/payments/' + ${payment.id} + '/confirm'}" method="post">
+                    <button class="btn btn-brand w-100"><i class="bi bi-check-circle me-2"></i>Confirm payment</button>
+                </form>
+                <form th:action="@{'/payments/' + ${payment.id} + '/cancel'}" method="post">
+                    <button class="btn btn-danger-soft w-100"><i class="bi bi-x-circle me-2"></i>Cancel payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
