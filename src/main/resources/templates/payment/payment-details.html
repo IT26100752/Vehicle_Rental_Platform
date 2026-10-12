@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payment Receipt')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-wallet">
+    <div class="band-center">
+        <p class="hero-kicker"><span>Receipt</span><span class="kick-pill">VRS</span><span>Secure record</span></p>
+        <h1 class="band-title">Payment <em>receipt</em></h1>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+    <div class="card-vrs mx-auto" style="max-width:500px;width:100%">
+        <div class="card-pad p-4 text-center">
+            <div style="width:84px;height:84px;border-radius:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:2.3rem"
+                 th:styleappend="${payment.status.name() == 'COMPLETED'} ? ';background:#e8f7ee;color:#16a34a' : (${payment.status.name() == 'FAILED'} ? ';background:#fdeaea;color:#dc2626' : ';background:#fdf3e0;color:#d97706')">
+                <i class="bi" th:classappend="${payment.status.name() == 'COMPLETED'} ? 'bi-check-circle-fill' : (${payment.status.name() == 'FAILED'} ? 'bi-x-circle-fill' : 'bi-hourglass-split')"></i>
+            </div>
+            <p class="overline">Receipt</p>
+            <h4 style="font-weight:800">Payment <span th:text="${payment.status.label()}">Completed</span></h4>
+
+            <div style="background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:6px 18px;text-align:left" class="mt-4">
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Reference</span><code th:text="${payment.transactionReference}">TXN</code></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Booking</span>
+                    <a style="color:var(--brand);font-weight:800" th:href="@{'/bookings/' + ${payment.bookingId}}" th:text="'#' + ${payment.bookingId}">#1</a></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Method</span><span style="font-weight:700" th:text="${payment.method.label()}">Card</span></div>
+                <div class="list-line" style="border-bottom:1px solid var(--line)"><span class="page-sub">Date</span><span style="font-weight:700" th:text="${payment.paymentDate}">date</span></div>
+                <div class="list-line"><span class="page-sub">Amount</span>
+                    <span class="price-tag" th:text="'LKR ' + ${#numbers.formatDecimal(payment.amount, 1, 'COMMA', 2, 'POINT')}">0</span></div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <a class="btn btn-line flex-grow-1" th:href="@{'/bookings/' + ${payment.bookingId}}">Back to booking</a>
+                <a class="btn btn-navy flex-grow-1" th:href="@{/payments}">Payment history</a>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

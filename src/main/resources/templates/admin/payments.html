@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payments')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="band-photo bg-wallet">
+    <div class="band-bar">
+        <div>
+            <p class="overline overline-light" th:text="${revenue != null} ? 'Admin · revenue' : 'Your wallet'">Wallet</p>
+            <h1 class="band-title" th:text="${revenue != null} ? 'All Payments' : 'My Payments'">Payments</h1>
+            <p class="band-sub">Receipts, methods and statuses - open any row for the full payment record.</p>
+        </div>
+        <div class="band-actions">
+            <span class="pill pill-ok fs-6" th:if="${revenue != null}"
+                  th:text="'Total revenue: LKR ' + ${#numbers.formatDecimal(revenue, 1, 'COMMA', 2, 'POINT')}">0</span>
+        </div>
+    </div>
+</div>
+<main class="container-vrs pull-up">
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table-vrs">
+                <thead>
+                <tr><th>#</th><th>Reference</th><th>Booking</th><th>Method</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${payments}">
+                    <td><b th:text="${p.id}">1</b></td>
+                    <td><code th:text="${p.transactionReference}">TXN</code></td>
+                    <td><a style="color:var(--brand);font-weight:700" th:href="@{'/bookings/' + ${p.bookingId}}" th:text="'#' + ${p.bookingId}">#1</a></td>
+                    <td><span class="pill pill-info" th:text="${p.method.label()}">Card</span></td>
+                    <td th:text="${p.paymentDate}">date</td>
+                    <td style="font-weight:800" th:text="'LKR ' + ${#numbers.formatDecimal(p.amount, 1, 'COMMA', 2, 'POINT')}">0</td>
+                    <td><span class="badge" th:classappend="'bg-' + ${p.status.badge()}" th:text="${p.status.label()}">S</span></td>
+                    <td><a class="btn btn-line btn-sm-vrs" th:href="@{'/payments/' + ${p.id}}">Open</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(payments)}"><td colspan="8" style="padding:44px;text-align:center;color:var(--muted)">No payments yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
