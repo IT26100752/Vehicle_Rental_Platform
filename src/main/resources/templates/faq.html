@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:with="metaDescription='Answers to common questions about renting a vehicle with DriveLanka Rentals: booking, drivers, documents, payments, discounts, late returns and receipts.'">
+<head th:replace="~{fragments/layout :: head('Help and FAQ')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('faq')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container" style="max-width:860px">
+    <div class="page-head faq-head">
+      <div><h1>Help and FAQ</h1><p>Quick answers to the questions we hear most. Can't find yours? <a href="#contact">Contact us</a>.</p></div>
+    </div>
+
+    <div class="faq-search">
+      <input type="search" data-faq-search placeholder="Search the questions, e.g. driver, refund, late" aria-label="Search the FAQ">
+      <button type="button" class="btn ghost small" data-faq-toggle data-state="closed">Expand all</button>
+      <span class="muted small" data-faq-count aria-live="polite"></span>
+    </div>
+
+    <div class="faq" data-faq>
+      <section class="faq-group" data-faq-group>
+        <h2>Booking and availability</h2>
+        <details id="how-to-book"><summary>How do I book a vehicle?</summary><div class="answer">
+          <ol>
+            <li>Open <a th:href="@{/vehicles}">Vehicles</a>, pick a vehicle and choose your pickup and return days on the calendar.</li>
+            <li>Fill in the rental details (name, NIC and, for self drive, your driving licence ID).</li>
+            <li>Check the summary, then pay by card, wallet, bank transfer or cash.</li>
+          </ol>
+          <p>You need a free account to book. It takes a minute to <a th:href="@{/register}">create one</a>.</p>
+        </div></details>
+        <details id="hold"><summary>How long is a vehicle held while I pay?</summary><div class="answer">
+          <p>Once you confirm the summary the vehicle is held for you for <strong th:text="${holdMinutes} + ' minutes'">15 minutes</strong>. A countdown on the page shows the time left. If it runs out the hold is released and you can book again.</p>
+        </div></details>
+        <details><summary>The calendar shows some days crossed out. Why?</summary><div class="answer">
+          <p>Crossed-out days are already booked by someone else. Pick a free stretch of days and the price appears straight away. A vehicle that is out on rental can still be booked for dates after it comes back.</p>
+        </div></details>
+        <details><summary>What is the longest rental, and who can rent?</summary><div class="answer">
+          <p>A single booking can last up to <strong th:text="${maxRentalDays} + ' days'">60 days</strong>. Renters must be between 18 and 80 years old.</p>
+        </div></details>
+        <details id="cancel"><summary>Can I cancel a booking?</summary><div class="answer">
+          <p>Yes. Open <strong>My bookings</strong> and choose Cancel on any booking that is not finished yet. The vehicle is released straight away. If you had already paid the rental, the payment is refunded. A bank transfer that is still being checked is simply closed.</p>
+        </div></details>
+      </section>
+
+      <section class="faq-group" data-faq-group>
+        <h2>Drivers and locations</h2>
+        <details id="driver"><summary>Self drive or with a driver: what is the difference?</summary><div class="answer">
+          <p>With <strong>self drive</strong> you drive the vehicle and show your driving licence at pickup. With <strong>a driver</strong> a professional driver is assigned for the whole trip, so you don't need to show a licence. The driver fee is <strong>LKR <span th:text="${driverFee}">3500</span> per day</strong> and is added to the price before you pay.</p>
+          <p>After payment we assign a driver and send them the trip details. Bikes are self drive only.</p>
+        </div></details>
+        <details><summary>Can I pick up and drop off at different places?</summary><div class="answer">
+          <p>Yes. Choose any of our branches for pickup and for drop-off. Returning to a different branch adds a one-way fee of <strong>LKR <span th:text="${oneWayFee}">2500</span></strong>. With a driver you can also give an address and the driver comes to you.</p>
+        </div></details>
+      </section>
+
+      <section class="faq-group" data-faq-group>
+        <h2>Documents</h2>
+        <details id="documents"><summary>What do I need to bring when I collect the vehicle?</summary><div class="answer">
+          <p>Bring your <strong>original NIC</strong> and, for self drive, your <strong>original driving licence</strong>. Our staff check them before the keys are handed over. Copies and photos are not accepted.</p>
+        </div></details>
+        <details><summary>Why do you ask for my NIC when I book?</summary><div class="answer">
+          <p>Renter details are needed to prepare the rental and to check your identity at pickup. We read your age and sex from the NIC number so you have less to type, and we remember your details for your next booking.</p>
+        </div></details>
+      </section>
+
+      <section class="faq-group" data-faq-group>
+        <h2>Prices and payments</h2>
+        <details id="payment-methods"><summary>Which payment methods can I use?</summary><div class="answer">
+          <ul>
+            <li><strong>Card</strong> and <strong>digital wallet</strong>: confirmed straight away.</li>
+            <li><strong>Bank transfer</strong>: send the money, enter your transfer details, and our team confirms it. The booking shows <em>Payment under review</em> until then.</li>
+            <li><strong>Cash</strong>: pay at the counter and our staff record it.</li>
+          </ul>
+        </div></details>
+        <details id="discounts"><summary>Are there any discounts?</summary><div class="answer">
+          <ul>
+            <li>5% off rentals of 7 days or more.</li>
+            <li>2% off when your rental starts on a Saturday.</li>
+            <li>Premium members get 10% off rentals of 3 days or more, and a gentler late-return fee.</li>
+          </ul>
+          <p>Discounts are applied automatically and listed line by line in your price before you pay.</p>
+        </div></details>
+        <details id="late"><summary>What happens if I return the vehicle late?</summary><div class="answer">
+          <p>Late returns are charged <strong th:text="${lateFeeRule}">10% per day</strong>. The booking then shows <em>Late fine due</em> and you pay the fine online from the booking page. Return on time and there is nothing extra to pay.</p>
+        </div></details>
+        <details id="receipts"><summary>Where can I get my receipt?</summary><div class="answer">
+          <p>Every payment gets a receipt. Open the booking or <strong>Payment history</strong> to view it on screen or download it as a PDF. We also email it to you.</p>
+        </div></details>
+      </section>
+
+      <section class="faq-group" data-faq-group>
+        <h2>Your account</h2>
+        <details><summary>I did not get my verification code</summary><div class="answer">
+          <p>The code arrives by email and works for <strong th:text="${verifyMinutes} + ' minutes'">15 minutes</strong>. Check your spam folder, then use <em>Resend code</em> after a minute to get a new one.</p>
+        </div></details>
+        <details id="reviews"><summary>How do reviews work?</summary><div class="answer">
+          <p>After a rental is completed you can rate it from 1 to 5 stars and leave a comment. Honest reviews are published, including low ratings.</p>
+        </div></details>
+        <details id="complaints"><summary>Something went wrong. How do I complain?</summary><div class="answer">
+          <p>Open <a th:href="@{/complaints}">Complaints</a>, choose <em>New complaint</em> and tell us what happened. You can follow our replies and the status on the same page.</p>
+        </div></details>
+      </section>
+    </div>
+
+    <p class="muted" data-faq-empty hidden>No answers match your search. Try a different word, or <a href="#contact">contact us</a>.</p>
+
+    <section class="card faq-contact" id="contact">
+      <h2>Still need help?</h2>
+      <p>Our team is happy to help.</p>
+      <p th:if="${companyEmail != null and !companyEmail.isEmpty()}">Email: <a th:href="'mailto:' + ${companyEmail}" th:text="${companyEmail}">hello@example.com</a></p>
+      <p th:if="${companyPhone != null and !companyPhone.isEmpty()}">Phone: <a th:href="'tel:' + ${companyPhone}" th:text="${companyPhone}">+94 11 234 5678</a></p>
+      <a class="btn ghost" th:href="@{/complaints/new}">Send us a message</a>
+    </section>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
