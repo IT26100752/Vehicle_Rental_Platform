@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Something went wrong')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('none')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container error-page">
+    <div class="code" th:text="${status}">404</div>
+    <h1 th:text="${title != null} ? ${title} : (${status == 404} ? 'We could not find that page' : 'Something went wrong')">We could not find that</h1>
+    <p class="muted" th:if="${message != null and !#strings.isEmpty(message)}" th:text="${message}">Message</p>
+    <p class="muted" th:unless="${message != null and !#strings.isEmpty(message)}">Go back and try again, or head to the home page.</p>
+    <div class="row" style="justify-content:center">
+      <a th:href="@{/}" class="btn">Go to the home page</a>
+      <a href="javascript:history.back()" class="btn ghost" data-no-loader>Go back</a>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

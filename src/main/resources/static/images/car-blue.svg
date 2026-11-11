@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 92 600 208" role="img" aria-label="Car">
+<defs><linearGradient id="bcblue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6393db"/><stop offset=".45" stop-color="#2f6fcf"/><stop offset="1" stop-color="#214f95"/></linearGradient>
+<linearGradient id="gcblue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fd0e6"/><stop offset="1" stop-color="#2d4b5c"/></linearGradient></defs>
+<ellipse cx="320" cy="278" rx="250" ry="14" fill="#000" opacity=".4"/>
+<path d="M44 236 C42 206 56 192 92 186 L178 170 C204 132 238 108 292 106 L392 106 C440 108 474 132 506 168 L558 178 C590 184 604 204 600 236 C600 246 594 252 584 252 L60 252 C50 252 44 246 44 236Z" fill="url(#bcblue)"/>
+<path d="M206 166 C226 136 250 122 292 120 L346 120 L346 166Z" fill="url(#gcblue)"/>
+<path d="M360 120 L394 120 C428 124 454 142 478 166 L360 166Z" fill="url(#gcblue)"/>
+<rect x="349" y="118" width="8" height="50" rx="3" fill="#214f95"/>
+<path d="M44 224 L600 224" stroke="#214f95" stroke-width="2" opacity=".5"/>
+<rect x="408" y="190" width="30" height="7" rx="3.5" fill="#214f95"/><rect x="258" y="190" width="30" height="7" rx="3.5" fill="#214f95"/>
+<path d="M566 190 L598 196 C602 206 602 214 598 220 L566 214Z" fill="#fff6d6"/>
+<path d="M46 196 L64 194 L64 212 L46 214Z" fill="#e5484d"/>
+<path d="M44 236 H600 V246 H44Z" fill="#0b0e10" opacity=".35"/>
+<path d="M130 238 a40 40 0 0 1 80 0Z M450 238 a40 40 0 0 1 80 0Z" fill="#06090a"/>
+<g class="wheel"><circle cx="170" cy="238" r="38" fill="#0b0e10"/>
+<circle cx="170" cy="238" r="27" fill="#c9d0d4"/><circle cx="170" cy="238" r="14" fill="#5c676d"/>
+<g stroke="#8b979d" stroke-width="3" stroke-linecap="round"><path d="M170 212V264M144 238H196M150 218L190 258M190 218L150 258"/></g></g><g class="wheel"><circle cx="490" cy="238" r="38" fill="#0b0e10"/>
+<circle cx="490" cy="238" r="27" fill="#c9d0d4"/><circle cx="490" cy="238" r="14" fill="#5c676d"/>
+<g stroke="#8b979d" stroke-width="3" stroke-linecap="round"><path d="M490 212V264M464 238H516M470 218L510 258M510 218L470 258"/></g></g>
+</svg>

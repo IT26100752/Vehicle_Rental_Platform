@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<!-- ======================= <head> shared by every page ======================= -->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#0b0f11">
+    <script>(function(){var t=null;try{t=localStorage.getItem("theme");}catch(e){}if(t!=="light"&&t!=="dark"){t=(window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark";}document.documentElement.setAttribute("data-theme",t);})();</script>
+    <!-- intro loader gate: Home / Login / Register, once per browser session. Add ?intro to replay, ?nointro to skip.
+         Set ONCE=false to play on every visit. -->
+    <script>(function(){try{var ONCE=true,d=document.documentElement,p=location.pathname.replace(/\/+$/,'')||'/',q=location.search;
+if(!{'/':1,'/login':1,'/register':1}[p]||/[?&]nointro/.test(q))return;
+if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+var k='intro:'+p;if(ONCE&&sessionStorage.getItem(k)&&!/[?&]intro/.test(q))return;
+sessionStorage.setItem(k,'1');d.classList.add('intro-on');}catch(e){}})();</script>
+    <title th:text="${title} + ' | DriveLanka Rentals'">DriveLanka Rentals</title>
+    <meta name="description" th:if="${metaDescription != null}" th:content="${metaDescription}">
+    <meta property="og:site_name" content="DriveLanka Rentals">
+    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${title} + ' | DriveLanka Rentals'">
+    <meta property="og:description" th:if="${metaDescription != null}" th:content="${metaDescription}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/features.css}">
+    <link rel="stylesheet" th:href="@{/css/ui-refresh.css}">
+    <link rel="stylesheet" th:href="@{/css/fx.css}">
+    <link rel="stylesheet" th:href="@{/css/cinema.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-plus.css}">
+</head>
+
+<body>
+
+<!-- ======================= top navigation ======================= -->
+<header th:fragment="navbar(active)" class="nav">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="container nav-inner">
+        <a class="brand" th:href="${isAdmin} ? @{/admin/dashboard} : @{/}">
+            <img class="brand-mark" th:src="@{/images/logo.svg}" alt="" width="34" height="34">
+            <span>DriveLanka Rentals</span>
+        </a>
+        <button class="nav-toggle" id="navToggle" type="button" aria-controls="navLinks" aria-expanded="false" aria-label="Menu"><svg class="ico ico-open" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><svg class="ico ico-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <nav class="nav-links" id="navLinks" aria-label="Main">
+            <th:block th:unless="${active == 'admin'}">
+            <a th:href="@{/}" th:classappend="${active == 'home'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>Home</a>
+            <a th:href="@{/vehicles}" th:classappend="${active == 'vehicles'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16v-3l2-5h14l2 5v3M3 16h18M3 16v2h3v-2M18 16v2h3v-2"/><circle cx="7.5" cy="13.5" r=".8"/><circle cx="16.5" cy="13.5" r=".8"/></svg>Vehicles</a>
+            <a th:href="@{/reviews}" th:classappend="${active == 'reviews'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>Reviews</a>
+            <a th:href="@{/faq}" th:unless="${isCustomer}" th:classappend="${active == 'faq'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 115 0c0 1.5-2.5 2-2.5 3.5M12 17h.01"/></svg>FAQ</a>
+            </th:block>
+            <th:block th:if="${isCustomer}">
+                <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</a>
+                <a th:href="@{/bookings}" th:classappend="${active == 'bookings'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>Bookings</a>
+                <a th:href="@{/complaints}" th:classappend="${active == 'complaints'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 9v3M12 14.5v.1"/></svg>Complaints</a>
+                <a th:href="@{/profile}" th:classappend="${active == 'profile'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.2 4-6 8-6s7.3 1.8 8 6"/></svg>Profile</a>
+                <a class="bell" th:href="@{/notifications}" th:classappend="${active == 'notifications'} ? 'active'" aria-label="Notifications" data-bell>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a1.9 1.9 0 003.4 0"/></svg>
+                    <span class="bell-badge" th:if="${unreadNotifications > 0}" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}">3</span>
+                </a>
+                <a class="premium-chip" th:if="${isPremium}" th:href="@{/dashboard}" title="You are a Premium member">&#9733; Premium</a>
+                <span class="nav-user" th:text="${currentUserName}" th:classappend="${isPremium} ? 'is-premium'" th:attr="data-initial=${#strings.isEmpty(currentUserName) ? '?' : #strings.substring(currentUserName,0,1).toUpperCase()}">Name</span>
+                <a th:href="@{/logout}" class="btn ghost small"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Sign out</a>
+            </th:block>
+            <th:block th:if="${isAdmin}">
+                <a th:href="@{/}" th:if="${active == 'admin'}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>View site</a>
+            <a th:href="@{/admin/dashboard}" th:unless="${active == 'admin'}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Admin panel</a>
+                <a class="bell" th:href="@{/admin/notifications}" aria-label="Notifications" data-bell>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a1.9 1.9 0 003.4 0"/></svg>
+                    <span class="bell-badge" th:if="${unreadNotifications > 0}" th:text="${unreadNotifications > 99 ? '99+' : unreadNotifications}">3</span>
+                </a>
+                <span class="nav-user" th:text="${currentUserName}" th:attr="data-initial=${#strings.isEmpty(currentUserName) ? '?' : #strings.substring(currentUserName,0,1).toUpperCase()}">Admin</span>
+                <a th:href="@{/logout}" class="btn ghost small"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Sign out</a>
+            </th:block>
+            <th:block th:unless="${isCustomer}">
+                <th:block th:unless="${isAdmin}">
+                    <a th:href="@{/login}" th:classappend="${active == 'login'} ? 'active'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>Sign in</a>
+                    <a th:href="@{/register}" class="btn small"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.2 4-6 8-6M18 14v6M15 17h6"/></svg>Create account</a>
+                </th:block>
+            </th:block>
+        </nav>
+        <button class="theme-btn" id="themeToggle" type="button" aria-label="Switch between dark and light mode" title="Dark / light mode">
+            <svg class="ico i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="ico i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 019.8 3.5a8.5 8.5 0 1010.7 10.7z"/></svg>
+        </button>
+    </div>
+</header>
+
+<!-- ======================= flash messages (toasts) ======================= -->
+<div th:fragment="flash" class="toasts" aria-live="polite">
+    <div class="toast" th:if="${success}" role="status">
+        <span th:text="${success}">Done</span><button type="button" aria-label="Dismiss">&times;</button>
+    </div>
+    <div class="toast error" th:if="${error}" role="alert">
+        <span th:text="${error}">Problem</span><button type="button" aria-label="Dismiss">&times;</button>
+    </div>
+</div>
+
+<!-- ======================= 2s cinematic intro (Home / Login / Register) ======================= -->
+<div th:fragment="intro" class="intro" id="intro" aria-hidden="true">
+    <div class="intro-center">
+        <div class="intro-brand"><img th:src="@{/images/logo.svg}" alt="" width="34" height="34"><span>DriveLanka Rentals</span></div>
+        <div class="intro-meter"><div><span id="introStatus">Loading</span><em id="introPct">0%</em></div><div class="intro-bar"><i id="introFill"></i></div></div>
+    </div>
+</div>
+
+<!-- ======================= loading screen ======================= -->
+<div th:fragment="loader" class="loader" id="loader" aria-hidden="true" role="status" aria-live="polite">
+    <div class="loader-box">
+        <div class="spinner" aria-hidden="true"></div>
+        <div class="loader-text" id="loaderText">Working on it</div>
+        <div class="loader-sub" id="loaderSub">Just a moment</div>
+    </div>
+</div>
+
+<!-- ======================= payment verification overlay (tick animation) =======================
+     states set on #payOverlay[data-state]: processing | success | pending | failed
+     driven by js/script.js for any form that has the data-pay-form attribute -->
+<div th:fragment="payOverlay" class="pay-overlay" id="payOverlay" data-state="processing" aria-hidden="true" role="status" aria-live="polite">
+    <div class="pay-box">
+        <div class="pay-visual">
+            <svg class="pay-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" cx="60" cy="60" r="52"/></svg>
+            <svg class="pay-tick" viewBox="0 0 120 120" aria-hidden="true"><path d="M35 62l16 16 34-37"/></svg>
+            <svg class="pay-cross" viewBox="0 0 120 120" aria-hidden="true"><path d="M42 42l36 36M78 42L42 78"/></svg>
+            <svg class="pay-clock" viewBox="0 0 120 120" aria-hidden="true"><path class="clock-hand" d="M60 36v26l16 10"/></svg>
+        </div>
+        <h2 id="payTitle">Verifying your payment</h2>
+        <p id="paySub" class="muted">Please do not close this page</p>
+        <ol class="pay-steps" id="payStepsList" aria-hidden="true">
+            <li>Securing the connection</li><li>Contacting the payment provider</li><li>Verifying your payment</li><li>Confirming your booking</li>
+        </ol>
+    </div>
+</div>
+
+<!-- ======================= footer ======================= -->
+<footer th:fragment="footer" class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a class="brand" th:href="@{/}"><img th:src="@{/images/logo.svg}" alt="" width="36" height="36"><span>DriveLanka Rentals</span></a>
+                <p>Cars, vans, bikes and trucks for hire across Sri Lanka. Drive yourself or bring a driver.</p>
+            </div>
+            <nav class="footer-col" aria-label="Explore">
+                <h4>Explore</h4>
+                <a th:href="@{/vehicles}">Vehicles</a>
+                <a th:href="@{/#locations}">Find a branch</a>
+                <a th:href="@{/reviews}">Customer reviews</a>
+                <a th:href="@{/faq}">Help and FAQ</a>
+                <a th:href="@{/complaints}">Complaints &amp; support</a>
+            </nav>
+            <nav class="footer-col" aria-label="Account">
+                <h4>Account</h4>
+                <a th:href="@{/login}">Sign in</a>
+                <a th:href="@{/register}">Create account</a>
+                <a th:href="@{/login(type='admin')}">Staff sign in</a>
+            </nav>
+            <div class="footer-col">
+                <h4>Good to know</h4>
+                <p>Bring your original NIC, and your driving licence for self-drive rentals.</p>
+                <p>Late returns: <strong th:text="${lateFeeRule}">10% per day</strong></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; DriveLanka Rentals</span>
+        </div>
+    </div>
+</footer>
+
+<!-- ======================= admin sidebar ======================= -->
+<aside th:fragment="sidebar(active)" class="sidebar" aria-label="Admin">
+    <a th:href="@{/admin/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard</a>
+    <h4>Manage</h4>
+    <a th:href="@{/admin/bookings}" th:classappend="${active == 'bookings'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
+        Bookings <span class="side-badge" data-count="unassignedDrivers" data-tip="booking(s) still need a driver" hidden></span></a>
+    <a th:href="@{/admin/vehicles}" th:classappend="${active == 'vehicles'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 16v-3l2-5h14l2 5v3M3 16h18M3 16v2h3v-2M18 16v2h3v-2"/><circle cx="7.5" cy="14" r=".8"/><circle cx="16.5" cy="14" r=".8"/></svg>
+        Vehicles</a>
+    <a th:href="@{/admin/users}" th:classappend="${active == 'users'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3.5-6 6.5-6s6 2 6.5 6M17 4.5a3.5 3.5 0 010 7M21.5 20c-.3-2.6-1.7-4.4-3.5-5.3"/></svg>
+        Customers</a>
+    <a th:href="@{/admin/payments}" th:classappend="${active == 'payments'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6 15h4"/></svg>
+        Payments <span class="side-badge" data-count="pendingTransfers" data-tip="bank transfer(s) waiting for approval" hidden></span></a>
+    <a th:href="@{/admin/reviews}" th:classappend="${active == 'reviews'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
+        Reviews</a>
+    <a th:href="@{/admin/complaints}" th:classappend="${active == 'complaints'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/><path d="M12 9v3M12 14.5v.1"/></svg>
+        Complaints <span class="side-badge" data-count="openComplaints" data-tip="open complaint(s)" hidden></span></a>
+    <h4>Operations</h4>
+    <a th:href="@{/admin/drivers}" th:classappend="${active == 'drivers'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V3M9.8 13.2L4 16M14.2 13.2L20 16"/></svg>
+        Drivers</a>
+    <a th:href="@{/admin/locations}" th:classappend="${active == 'locations'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+        Locations</a>
+    <a th:href="@{/admin/notifications}" th:classappend="${active == 'notifications'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10.3 20a1.9 1.9 0 003.4 0"/></svg>
+        Notifications <span class="side-badge" th:if="${unreadNotifications > 0}" th:text="${unreadNotifications}">2</span></a>
+    <a th:href="@{/admin/emails}" th:classappend="${active == 'emails'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+        Email log</a>
+    <a th:href="@{/admin/promos}" th:classappend="${active == 'promos'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0L3 13V3h10l7.6 7.6a2 2 0 010 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+        Promo codes</a>
+    <h4>Team</h4>
+    <a th:href="@{/admin/admins}" th:classappend="${active == 'admins'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>
+        Admin team <span class="side-badge" th:if="${isManager}">Manager</span></a>
+    <a th:href="@{/admin/activity}" th:classappend="${active == 'activity'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Activity log</a>
+    <a th:href="@{/admin/account}" th:classappend="${active == 'account'} ? 'active'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.2 4-6 8-6s7.3 1.8 8 6"/></svg>
+        My account</a>
+</aside>
+
+<!-- ======================= star display ======================= -->
+<span th:fragment="stars(rating)" class="stars" th:attr="aria-label=|${rating} out of 5|">
+    <span th:each="i : ${#numbers.sequence(1,5)}" th:classappend="${i > rating} ? 'off'">&#9733;</span>
+</span>
+
+<!-- ======================= scripts at the end of every page ======================= -->
+<th:block th:fragment="scripts">
+    <script th:src="@{/js/script.js}"></script>
+    <script th:src="@{/js/fx3d.js}"></script>
+    <script th:src="@{/js/cinema.js}"></script>
+    <script th:src="@{/js/admin-plus.js}"></script>
+</th:block>
+
+</body>
+</html>

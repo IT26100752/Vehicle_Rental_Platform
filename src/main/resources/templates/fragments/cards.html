@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<!-- One vehicle card (real photo). Used on the home page, dashboard and the vehicle list. -->
+<a th:fragment="vehicleCard(card, query)" class="vehicle-card" th:href="@{${'/vehicles/' + card.vehicle.id + query}}"
+   th:with="img=${card.vehicle.imageUrl != null and !card.vehicle.imageUrl.isEmpty() ? card.vehicle.imageUrl : '/images/photos/' + #strings.toLowerCase(card.vehicle.type.name()) + '.jpg'}">
+  <div class="vehicle-pic">
+    <span class="badge" th:classappend="${#strings.toLowerCase(card.displayStatus.name())}" th:text="${card.displayStatus.label}">Available</span>
+    <span class="type-tag" th:text="${card.vehicle.type.label}">Car</span>
+    <img th:src="@{${img}}" th:classappend="${#strings.endsWith(img, '.svg')} ? 'contain'" th:alt="${card.vehicle.fullName}" width="1100" height="600" loading="lazy" decoding="async">
+    <span class="year-tag" th:if="${card.vehicle.year > 0}" th:text="${card.vehicle.year}">2019</span>
+  </div>
+  <div class="vehicle-body">
+    <h3 th:text="${card.vehicle.fullName}">Toyota Axio</h3>
+    <div class="specs">
+      <span th:text="${card.vehicle.seatingCapacity} + ' seats'">5 seats</span>
+      <span th:text="${card.vehicle.fuelType.label}">Hybrid</span>
+      <span th:text="${card.vehicle.transmission.label}">Automatic</span>
+    </div>
+    <p class="cap" th:text="${card.vehicle.capacityInfo}">4 doors, 450 L boot</p>
+    <div class="rating-line" th:if="${card.reviewCount > 0}">
+      <span th:replace="~{fragments/layout :: stars(${card.averageRating})}"></span>
+      <span th:text="${card.averageRating} + ' (' + ${card.reviewCount} + ')'">4.8 (3)</span>
+    </div>
+    <div class="rating-line" th:unless="${card.reviewCount > 0}"><span>No reviews yet</span></div>
+    <div class="price">
+      <strong>LKR <span th:text="${#numbers.formatDecimal(card.vehicle.pricePerDay, 1, 'COMMA', 2, 'POINT')}">9,500.00</span></strong>
+      <span>per day</span>
+    </div>
+  </div>
+</a>
+</body>
+</html>

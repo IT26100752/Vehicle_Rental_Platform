@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Car, van, bike and truck hire')}"></head>
+<body>
+<div th:replace="~{fragments/layout :: intro}"></div>
+<header th:replace="~{fragments/layout :: navbar('home')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<section class="hero-photo">
+  <div class="container hero-photo-inner">
+    <h1 class="hl" aria-label="Every road in Sri Lanka, ready when you are.">
+      <span class="w" style="--i:0" aria-hidden="true">Every</span> <span class="w" style="--i:1" aria-hidden="true">road</span> <span class="w" style="--i:2" aria-hidden="true">in</span> <span class="w" style="--i:3" aria-hidden="true">Sri</span> <span class="w" style="--i:4" aria-hidden="true">Lanka,</span> <em><span class="w" style="--i:5" aria-hidden="true">ready</span> <span class="w" style="--i:6" aria-hidden="true">when</span> <span class="w" style="--i:7" aria-hidden="true">you</span> <span class="w" style="--i:8" aria-hidden="true">are.</span></em>
+    </h1>
+    <div class="hl-road" aria-hidden="true"><svg class="hl-car" viewBox="0 0 150 56"><path d="M6 40 C6 32 12 29 20 28 L38 24 C44 14 54 8 68 8 H92 C104 8 112 14 120 24 L136 28 C144 30 147 35 146 40 V44 H6Z" fill="#f2b134"/><path d="M46 24 C50 17 57 13 68 13 H78 V24Z M84 13 H92 C100 13 106 17 112 24 H84Z" fill="#14202a"/><rect x="136" y="30" width="9" height="5" rx="2" fill="#fff6d6"/><rect x="6" y="30" width="5" height="6" rx="2" fill="#e5484d"/><g class="hl-wheel"><circle cx="38" cy="44" r="10" fill="#0b0e10"/><circle cx="38" cy="44" r="5" fill="#c9d0d4"/><path d="M38 38V50M32 44H44" stroke="#5c676d" stroke-width="2"/></g><g class="hl-wheel"><circle cx="114" cy="44" r="10" fill="#0b0e10"/><circle cx="114" cy="44" r="5" fill="#c9d0d4"/><path d="M114 38V50M108 44H120" stroke="#5c676d" stroke-width="2"/></g></svg></div>
+    <p class="lead">Cars, vans, bikes and trucks for hire. Drive yourself or bring a driver, see the price before you book, and pay by card, wallet or bank transfer.</p>
+    <form class="finder" method="get" th:action="@{/vehicles}" data-loader data-loader-text="Finding vehicles" data-loader-sub="Checking what is free for your dates">
+      <div><label for="fp">Pickup date</label><input id="fp" type="date" name="pickupDate" th:min="${today}" required></div>
+      <div><label for="fr">Return date</label><input id="fr" type="date" name="returnDate" th:min="${today.plusDays(1)}" required></div>
+      <button type="submit" class="btn big">Find vehicles</button>
+    </form>
+    <div class="hero-chips">
+      <span class="hero-chip">With or without driver</span>
+      <span class="hero-chip">Choose your pick-up and drop-off branch</span>
+      <span class="hero-chip">Instant PDF receipt</span>
+    </div>
+  </div>
+</section>
+
+<div class="container stat-strip over">
+  <div><strong th:attr="data-count=${fleetSize}" th:text="${fleetSize}">10</strong><span>vehicles in the fleet</span></div>
+  <div><strong th:text="${holdMinutes} + ' min'">15 min</strong><span>to pay after you book</span></div>
+  <div><strong>24/7</strong><span>support by email and complaints desk</span></div>
+</div>
+
+<main>
+  <div class="container">
+    <div class="panel-title"><h2>Pick your ride</h2><a th:href="@{/vehicles}" class="btn ghost small">See all vehicles</a></div>
+    <div class="type-tiles">
+      <a class="type-tile" th:href="@{/vehicles(type='CAR')}"><img th:src="@{/images/vehicles/axio.jpg}" alt="Cars"><span>Cars<small>City and highway</small></span></a>
+      <a class="type-tile" th:href="@{/vehicles(type='VAN')}"><img th:src="@{/images/vehicles/kdh.jpg}" alt="Vans"><span>Vans<small>Groups and tours</small></span></a>
+      <a class="type-tile" th:href="@{/vehicles(type='BIKE')}"><img th:src="@{/images/vehicles/fz.jpg}" alt="Bikes"><span>Bikes<small>Beat the traffic</small></span></a>
+      <a class="type-tile" th:href="@{/vehicles(type='TRUCK')}"><img th:src="@{/images/vehicles/canter.jpg}" alt="Trucks"><span>Trucks<small>Moving and delivery</small></span></a>
+    </div>
+
+    <section class="section">
+      <div class="panel-title"><h2>Ready to drive</h2></div>
+      <div class="grid cols-3" th:if="${!featured.isEmpty()}">
+        <th:block th:each="card : ${featured}"><a th:replace="~{fragments/cards :: vehicleCard(${card}, '')}"></a></th:block>
+      </div>
+      <div class="empty" th:if="${featured.isEmpty()}"><h3>No vehicles listed yet</h3><p>Check back soon.</p></div>
+    </section>
+
+    <section class="section">
+      <div class="band-grid">
+        <div class="band" style="background-image:url('/images/band-trips.jpg')"><div><h2>Need a driver?</h2><p>Add a driver to any car, van or truck. We assign one for your dates and send them your trip details automatically.</p></div></div>
+        <div class="band" style="background-image:url('/images/band-wallet.jpg')"><div><h2>Pay your way</h2><p>Card, digital wallet, bank transfer or cash at the counter. Every payment gets a downloadable PDF receipt.</p></div></div>
+      </div>
+    </section>
+
+    <section class="section map-section" id="locations" aria-labelledby="mapTitle">
+      <div class="panel-title"><h2 id="mapTitle">Find us across Sri Lanka</h2><a th:href="@{/vehicles}" class="btn ghost small">Browse vehicles</a></div>
+      <p class="muted lead-sm">Pick up and drop off at any of our branches. Choose yours when you book, and return at a different branch if it suits your trip.</p>
+      <div class="map-grid">
+        <ul class="pin-list" id="pinList" th:if="${!pins.isEmpty()}">
+          <li th:each="p, st : ${pins}" tabindex="0" class="pin-item" th:attr="data-lat=${p.latitude},data-lng=${p.longitude},data-name=${p.name}">
+            <span class="pin-num" th:text="${st.count}">1</span>
+            <span class="pin-text">
+              <strong th:text="${p.name}">Colombo Fort</strong>
+              <small th:text="${p.address != null ? p.address : p.city}">12 Olcott Mawatha</small>
+              <small class="pin-phone" th:if="${p.phone != null}" th:text="${p.phone}">0112000001</small>
+            </span>
+          </li>
+        </ul>
+        <div class="empty" th:if="${pins.isEmpty()}"><h3>Branches coming soon</h3><p>Our pick-up points will appear on the map.</p></div>
+        <figure class="map-card" id="mapCard">
+          <svg id="lkMap" viewBox="0 0 267.4 420" role="img" aria-label="Map of Sri Lanka with our rental branches" data-lon0="79.4" data-lat1="10.0" data-k="100" data-cos="0.9905">
+            <defs>
+              <linearGradient id="lkFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2b134" stop-opacity=".55"/><stop offset="1" stop-color="#5aa9e6" stop-opacity=".45"/></linearGradient>
+              <filter id="lkGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+            </defs>
+            <g class="lk-grid"></g>
+            <path class="lk-glow" d="M245.4 290.7L245.4 292.4L246.5 296.0L246.8 298.0L246.1 302.1L241.5 317.9L241.1 319.4L241.1 321.6L240.8 323.5L239.3 326.2L238.6 329.2L236.5 332.3L235.8 333.6L236.5 336.0L235.4 339.0L226.1 353.7L222.9 356.9L217.2 361.0L215.1 361.7L212.6 363.0L194.4 377.5L190.8 379.4L178.7 383.8L178.7 382.3L178.0 381.6L176.9 381.9L176.6 382.6L176.6 384.3L175.9 385.0L174.1 385.6L171.9 387.0L169.8 388.0L159.5 390.2L154.5 391.9L148.8 392.9L146.3 393.9L144.8 395.9L142.3 395.4L139.5 396.4L132.0 402.2L130.2 404.2L126.3 404.0L124.5 404.2L123.1 404.7L121.7 405.6L119.5 407.3L118.1 407.6L114.5 406.1L112.7 405.6L107.0 406.2L105.6 405.9L104.5 405.1L104.2 404.0L103.5 402.9L101.7 403.9L100.3 404.0L96.3 403.4L95.6 402.4L94.9 402.2L93.8 402.9L93.1 402.9L93.1 402.7L92.8 402.7L92.4 401.7L87.1 399.7L83.9 399.1L81.7 397.3L80.3 396.6L79.6 397.5L77.8 395.9L69.6 387.3L68.9 386.8L68.9 386.3L68.5 386.0L68.5 384.6L67.1 383.1L62.5 373.3L62.5 370.3L61.4 368.6L60.7 363.9L58.9 360.6L57.8 355.9L57.1 354.1L56.0 353.4L56.0 352.2L56.4 352.0L57.1 352.2L56.4 346.5L45.7 319.3L44.6 311.7L44.3 311.0L44.3 303.7L44.6 303.6L45.7 300.0L45.7 298.8L41.1 282.0L41.8 279.4L41.4 280.9L42.5 282.6L44.3 287.7L45.0 287.7L45.0 286.7L45.3 286.4L45.7 286.4L45.7 283.3L45.0 280.8L44.6 280.4L43.2 280.3L42.5 279.8L42.1 278.9L42.8 277.4L42.8 276.7L38.2 241.1L37.5 239.7L37.9 239.2L38.2 239.2L38.9 239.7L38.9 238.1L39.6 236.0L39.6 235.0L40.0 234.0L38.2 230.3L38.2 225.7L36.1 214.4L34.6 210.7L33.6 205.5L31.8 201.4L29.3 190.1L29.3 186.9L29.7 187.2L30.0 187.2L30.0 187.6L30.4 185.7L30.0 179.8L29.3 178.1L31.1 177.1L32.5 175.1L33.6 172.7L34.6 169.7L37.5 164.9L36.1 168.5L34.3 171.9L34.6 172.9L35.4 173.6L36.4 174.1L37.5 174.1L35.7 178.8L34.6 179.1L34.3 179.5L34.3 183.5L32.5 188.9L32.5 192.0L34.3 194.0L35.0 194.5L32.9 198.7L36.1 200.9L40.7 201.4L42.8 199.7L42.5 197.9L41.8 196.5L40.4 194.5L39.3 193.8L38.9 192.6L42.1 186.4L42.1 185.2L40.7 181.7L41.1 178.6L40.7 177.8L40.4 177.6L40.0 177.1L40.7 175.1L42.1 173.4L42.1 172.2L42.5 170.2L43.6 166.0L44.3 156.2L45.7 154.5L46.4 152.4L46.4 148.2L46.8 146.2L48.2 144.8L50.0 143.8L51.4 142.0L53.5 135.7L54.6 125.9L52.1 119.9L52.5 118.7L52.5 111.6L52.1 108.0L51.4 107.2L51.1 106.2L53.2 105.3L54.3 105.2L60.0 99.9L62.8 98.4L64.2 97.4L65.0 94.9L66.0 92.5L66.7 89.0L69.9 80.7L69.9 80.2L71.0 76.6L71.0 69.4L69.9 69.2L67.1 67.7L66.0 66.7L65.3 64.8L64.6 62.1L64.6 60.9L66.0 59.6L68.2 58.6L70.7 57.7L73.5 57.0L75.7 53.8L77.8 52.8L78.9 52.7L78.2 51.0L75.3 47.9L73.5 46.6L66.0 42.2L64.6 40.3L67.8 40.5L71.0 41.7L76.7 45.2L82.4 46.6L84.2 47.6L86.4 49.6L87.1 50.6L85.6 51.3L86.4 52.7L85.6 53.3L87.8 54.7L92.8 53.5L101.7 50.0L104.2 50.3L109.5 51.6L115.6 54.5L120.2 55.4L113.5 50.8L111.3 49.6L108.8 49.1L106.7 47.6L105.6 47.1L104.5 47.1L102.8 47.4L102.4 47.6L102.4 48.1L102.0 48.3L100.3 47.1L96.7 47.2L96.0 46.9L88.8 40.8L86.0 39.0L79.6 36.3L77.8 35.1L76.7 35.1L76.7 37.6L78.5 39.1L79.2 40.2L78.5 41.3L77.8 41.5L74.6 39.7L71.0 36.4L68.9 35.6L72.8 39.7L70.3 39.1L63.2 35.6L59.6 32.6L57.1 31.7L57.1 31.5L55.3 30.7L55.3 31.4L54.3 30.7L53.2 27.3L50.3 23.1L52.5 22.1L56.4 18.5L58.2 17.7L66.0 18.4L69.9 17.9L71.4 18.0L72.1 19.4L72.1 21.6L72.4 22.3L73.2 22.6L73.9 22.6L76.4 23.3L77.4 24.5L78.5 24.5L79.6 23.9L80.3 23.9L81.0 24.3L84.2 27.5L93.1 37.1L96.0 39.0L103.1 42.4L103.5 42.4L103.5 41.7L99.9 39.8L91.0 32.7L83.9 24.5L80.3 22.6L74.6 21.2L73.2 20.1L72.8 18.5L74.9 17.7L77.8 17.2L82.1 17.0L83.9 17.4L85.3 18.4L86.0 21.6L99.9 38.3L106.0 41.8L133.4 64.1L135.2 66.8L137.3 68.7L138.4 70.6L137.3 71.2L136.6 70.9L135.6 69.5L134.8 69.2L133.1 68.9L132.4 69.0L132.7 69.9L138.1 74.9L140.2 76.1L139.1 74.8L138.8 73.6L139.1 72.9L140.6 72.6L140.9 72.9L142.0 76.1L147.0 85.4L145.9 85.2L144.1 84.4L142.7 84.4L142.0 85.7L142.7 86.3L144.5 86.4L145.9 87.4L146.3 89.6L147.0 89.6L147.0 89.1L148.4 88.3L148.8 90.6L150.2 93.9L152.0 96.7L154.5 98.2L154.5 98.9L153.7 99.6L153.0 99.9L151.6 97.9L150.5 97.2L147.7 96.6L146.3 95.9L147.3 97.4L150.9 100.8L150.9 102.6L152.0 103.5L150.9 104.5L150.2 105.7L151.6 106.9L153.4 106.7L154.8 105.5L156.2 102.0L159.8 106.3L163.0 111.8L164.4 113.1L166.2 113.6L167.7 114.8L169.8 120.0L170.5 120.5L170.9 121.2L173.4 122.2L174.4 124.9L175.9 130.2L176.2 129.1L176.6 128.8L178.0 129.5L177.6 130.3L180.5 133.4L181.6 134.9L181.6 136.7L180.8 137.4L179.8 137.9L178.7 138.9L180.8 138.3L183.0 143.0L183.3 145.4L180.8 145.9L181.2 144.2L180.5 143.0L179.4 142.7L178.7 144.5L179.1 145.9L179.8 146.7L180.1 147.7L179.4 149.2L175.9 146.9L174.1 146.5L172.6 147.2L171.2 148.9L171.6 149.9L173.4 149.6L175.5 147.9L176.9 149.4L178.0 151.3L179.4 152.8L181.9 153.5L186.2 153.3L188.0 152.3L186.9 149.9L190.5 148.4L191.5 148.6L192.6 149.2L194.0 150.4L194.8 151.8L195.5 155.8L196.9 160.9L196.9 163.6L195.8 162.7L194.4 160.0L193.3 159.5L193.7 163.8L194.4 164.9L195.5 165.6L196.9 165.6L198.0 166.1L199.7 174.6L202.2 182.7L203.0 187.2L201.2 189.8L200.1 185.0L198.3 180.8L197.6 180.8L197.6 186.4L198.0 186.7L199.0 187.1L199.7 189.4L201.5 190.6L203.3 190.6L204.0 188.4L204.4 188.4L205.5 189.9L206.2 193.5L206.9 194.8L207.9 196.0L208.7 197.2L210.1 200.1L210.4 199.6L211.5 198.7L211.9 199.6L211.5 200.1L211.5 200.4L211.9 200.7L211.9 201.4L214.0 200.1L214.4 200.6L214.4 202.1L214.0 202.9L214.0 204.1L214.7 205.5L215.8 206.5L216.9 207.0L217.6 208.3L216.9 208.3L216.9 208.5L216.2 208.8L215.4 211.0L216.5 214.4L218.6 216.8L221.5 216.4L222.2 218.5L222.9 219.8L227.6 224.7L229.0 226.9L229.0 228.8L226.8 229.4L225.8 228.8L223.6 225.7L222.2 224.5L220.4 224.0L219.4 224.0L218.3 225.2L217.6 227.4L218.6 227.9L219.7 228.1L220.8 227.8L221.5 226.7L223.6 227.6L224.4 228.4L224.4 229.4L225.4 230.8L226.8 232.0L227.9 233.2L229.0 235.0L228.3 235.5L228.3 236.0L229.0 237.7L229.7 237.0L229.3 235.7L230.4 236.0L232.6 237.7L233.3 238.6L235.0 243.1L234.3 246.0L234.3 246.3L235.0 247.2L235.0 247.7L234.7 248.4L234.0 248.9L233.6 249.5L234.3 251.1L235.8 252.7L234.7 253.6L234.7 254.3L235.8 254.4L236.5 253.4L237.2 253.4L237.9 257.5L237.9 259.0L238.6 259.0L238.6 257.5L239.7 254.1L239.7 252.4L240.4 252.6L241.1 253.4L241.5 254.3L241.8 256.3L243.3 258.8L245.7 267.3L245.4 290.7ZM231.5 234.0L231.5 232.8L230.4 230.1L230.4 229.1L230.8 228.1L230.8 227.3L230.4 226.1L231.5 227.3L234.0 232.0L234.7 234.5L238.3 240.1L240.0 248.9L240.0 250.9L238.6 252.1L236.5 250.4L236.8 242.8L236.5 240.6L235.4 239.7L235.0 238.9L231.5 234.0ZM31.1 92.5L30.0 92.0L29.7 91.0L29.7 90.1L31.1 89.6L35.7 89.6L39.6 90.6L43.9 92.3L47.8 94.7L51.1 97.9L49.6 97.6L46.8 96.2L45.0 95.9L49.6 101.1L50.3 102.6L48.2 102.3L46.4 101.1L44.6 99.3L43.6 98.8L39.6 95.0L35.7 93.3L33.2 92.7L31.1 92.5ZM32.9 50.0L32.2 50.8L31.1 51.5L28.6 51.6L26.4 50.8L25.4 49.6L25.4 45.6L25.7 44.5L26.4 44.5L27.5 46.6L28.9 47.1L31.1 47.2L31.8 47.6L32.9 50.0ZM49.3 38.3L47.5 37.1L46.1 34.9L43.6 30.0L44.6 28.3L45.0 26.1L45.7 24.5L47.8 23.9L48.9 24.3L48.9 25.1L48.6 26.3L48.6 30.4L48.9 31.2L50.3 32.2L52.1 32.1L52.5 32.4L52.5 33.9L52.8 34.6L56.8 36.6L57.1 37.6L56.4 38.3L55.3 38.3L52.1 37.1L50.3 38.1L49.3 38.3Z" filter="url(#lkGlow)"/>
+            <path class="lk-land" d="M245.4 290.7L245.4 292.4L246.5 296.0L246.8 298.0L246.1 302.1L241.5 317.9L241.1 319.4L241.1 321.6L240.8 323.5L239.3 326.2L238.6 329.2L236.5 332.3L235.8 333.6L236.5 336.0L235.4 339.0L226.1 353.7L222.9 356.9L217.2 361.0L215.1 361.7L212.6 363.0L194.4 377.5L190.8 379.4L178.7 383.8L178.7 382.3L178.0 381.6L176.9 381.9L176.6 382.6L176.6 384.3L175.9 385.0L174.1 385.6L171.9 387.0L169.8 388.0L159.5 390.2L154.5 391.9L148.8 392.9L146.3 393.9L144.8 395.9L142.3 395.4L139.5 396.4L132.0 402.2L130.2 404.2L126.3 404.0L124.5 404.2L123.1 404.7L121.7 405.6L119.5 407.3L118.1 407.6L114.5 406.1L112.7 405.6L107.0 406.2L105.6 405.9L104.5 405.1L104.2 404.0L103.5 402.9L101.7 403.9L100.3 404.0L96.3 403.4L95.6 402.4L94.9 402.2L93.8 402.9L93.1 402.9L93.1 402.7L92.8 402.7L92.4 401.7L87.1 399.7L83.9 399.1L81.7 397.3L80.3 396.6L79.6 397.5L77.8 395.9L69.6 387.3L68.9 386.8L68.9 386.3L68.5 386.0L68.5 384.6L67.1 383.1L62.5 373.3L62.5 370.3L61.4 368.6L60.7 363.9L58.9 360.6L57.8 355.9L57.1 354.1L56.0 353.4L56.0 352.2L56.4 352.0L57.1 352.2L56.4 346.5L45.7 319.3L44.6 311.7L44.3 311.0L44.3 303.7L44.6 303.6L45.7 300.0L45.7 298.8L41.1 282.0L41.8 279.4L41.4 280.9L42.5 282.6L44.3 287.7L45.0 287.7L45.0 286.7L45.3 286.4L45.7 286.4L45.7 283.3L45.0 280.8L44.6 280.4L43.2 280.3L42.5 279.8L42.1 278.9L42.8 277.4L42.8 276.7L38.2 241.1L37.5 239.7L37.9 239.2L38.2 239.2L38.9 239.7L38.9 238.1L39.6 236.0L39.6 235.0L40.0 234.0L38.2 230.3L38.2 225.7L36.1 214.4L34.6 210.7L33.6 205.5L31.8 201.4L29.3 190.1L29.3 186.9L29.7 187.2L30.0 187.2L30.0 187.6L30.4 185.7L30.0 179.8L29.3 178.1L31.1 177.1L32.5 175.1L33.6 172.7L34.6 169.7L37.5 164.9L36.1 168.5L34.3 171.9L34.6 172.9L35.4 173.6L36.4 174.1L37.5 174.1L35.7 178.8L34.6 179.1L34.3 179.5L34.3 183.5L32.5 188.9L32.5 192.0L34.3 194.0L35.0 194.5L32.9 198.7L36.1 200.9L40.7 201.4L42.8 199.7L42.5 197.9L41.8 196.5L40.4 194.5L39.3 193.8L38.9 192.6L42.1 186.4L42.1 185.2L40.7 181.7L41.1 178.6L40.7 177.8L40.4 177.6L40.0 177.1L40.7 175.1L42.1 173.4L42.1 172.2L42.5 170.2L43.6 166.0L44.3 156.2L45.7 154.5L46.4 152.4L46.4 148.2L46.8 146.2L48.2 144.8L50.0 143.8L51.4 142.0L53.5 135.7L54.6 125.9L52.1 119.9L52.5 118.7L52.5 111.6L52.1 108.0L51.4 107.2L51.1 106.2L53.2 105.3L54.3 105.2L60.0 99.9L62.8 98.4L64.2 97.4L65.0 94.9L66.0 92.5L66.7 89.0L69.9 80.7L69.9 80.2L71.0 76.6L71.0 69.4L69.9 69.2L67.1 67.7L66.0 66.7L65.3 64.8L64.6 62.1L64.6 60.9L66.0 59.6L68.2 58.6L70.7 57.7L73.5 57.0L75.7 53.8L77.8 52.8L78.9 52.7L78.2 51.0L75.3 47.9L73.5 46.6L66.0 42.2L64.6 40.3L67.8 40.5L71.0 41.7L76.7 45.2L82.4 46.6L84.2 47.6L86.4 49.6L87.1 50.6L85.6 51.3L86.4 52.7L85.6 53.3L87.8 54.7L92.8 53.5L101.7 50.0L104.2 50.3L109.5 51.6L115.6 54.5L120.2 55.4L113.5 50.8L111.3 49.6L108.8 49.1L106.7 47.6L105.6 47.1L104.5 47.1L102.8 47.4L102.4 47.6L102.4 48.1L102.0 48.3L100.3 47.1L96.7 47.2L96.0 46.9L88.8 40.8L86.0 39.0L79.6 36.3L77.8 35.1L76.7 35.1L76.7 37.6L78.5 39.1L79.2 40.2L78.5 41.3L77.8 41.5L74.6 39.7L71.0 36.4L68.9 35.6L72.8 39.7L70.3 39.1L63.2 35.6L59.6 32.6L57.1 31.7L57.1 31.5L55.3 30.7L55.3 31.4L54.3 30.7L53.2 27.3L50.3 23.1L52.5 22.1L56.4 18.5L58.2 17.7L66.0 18.4L69.9 17.9L71.4 18.0L72.1 19.4L72.1 21.6L72.4 22.3L73.2 22.6L73.9 22.6L76.4 23.3L77.4 24.5L78.5 24.5L79.6 23.9L80.3 23.9L81.0 24.3L84.2 27.5L93.1 37.1L96.0 39.0L103.1 42.4L103.5 42.4L103.5 41.7L99.9 39.8L91.0 32.7L83.9 24.5L80.3 22.6L74.6 21.2L73.2 20.1L72.8 18.5L74.9 17.7L77.8 17.2L82.1 17.0L83.9 17.4L85.3 18.4L86.0 21.6L99.9 38.3L106.0 41.8L133.4 64.1L135.2 66.8L137.3 68.7L138.4 70.6L137.3 71.2L136.6 70.9L135.6 69.5L134.8 69.2L133.1 68.9L132.4 69.0L132.7 69.9L138.1 74.9L140.2 76.1L139.1 74.8L138.8 73.6L139.1 72.9L140.6 72.6L140.9 72.9L142.0 76.1L147.0 85.4L145.9 85.2L144.1 84.4L142.7 84.4L142.0 85.7L142.7 86.3L144.5 86.4L145.9 87.4L146.3 89.6L147.0 89.6L147.0 89.1L148.4 88.3L148.8 90.6L150.2 93.9L152.0 96.7L154.5 98.2L154.5 98.9L153.7 99.6L153.0 99.9L151.6 97.9L150.5 97.2L147.7 96.6L146.3 95.9L147.3 97.4L150.9 100.8L150.9 102.6L152.0 103.5L150.9 104.5L150.2 105.7L151.6 106.9L153.4 106.7L154.8 105.5L156.2 102.0L159.8 106.3L163.0 111.8L164.4 113.1L166.2 113.6L167.7 114.8L169.8 120.0L170.5 120.5L170.9 121.2L173.4 122.2L174.4 124.9L175.9 130.2L176.2 129.1L176.6 128.8L178.0 129.5L177.6 130.3L180.5 133.4L181.6 134.9L181.6 136.7L180.8 137.4L179.8 137.9L178.7 138.9L180.8 138.3L183.0 143.0L183.3 145.4L180.8 145.9L181.2 144.2L180.5 143.0L179.4 142.7L178.7 144.5L179.1 145.9L179.8 146.7L180.1 147.7L179.4 149.2L175.9 146.9L174.1 146.5L172.6 147.2L171.2 148.9L171.6 149.9L173.4 149.6L175.5 147.9L176.9 149.4L178.0 151.3L179.4 152.8L181.9 153.5L186.2 153.3L188.0 152.3L186.9 149.9L190.5 148.4L191.5 148.6L192.6 149.2L194.0 150.4L194.8 151.8L195.5 155.8L196.9 160.9L196.9 163.6L195.8 162.7L194.4 160.0L193.3 159.5L193.7 163.8L194.4 164.9L195.5 165.6L196.9 165.6L198.0 166.1L199.7 174.6L202.2 182.7L203.0 187.2L201.2 189.8L200.1 185.0L198.3 180.8L197.6 180.8L197.6 186.4L198.0 186.7L199.0 187.1L199.7 189.4L201.5 190.6L203.3 190.6L204.0 188.4L204.4 188.4L205.5 189.9L206.2 193.5L206.9 194.8L207.9 196.0L208.7 197.2L210.1 200.1L210.4 199.6L211.5 198.7L211.9 199.6L211.5 200.1L211.5 200.4L211.9 200.7L211.9 201.4L214.0 200.1L214.4 200.6L214.4 202.1L214.0 202.9L214.0 204.1L214.7 205.5L215.8 206.5L216.9 207.0L217.6 208.3L216.9 208.3L216.9 208.5L216.2 208.8L215.4 211.0L216.5 214.4L218.6 216.8L221.5 216.4L222.2 218.5L222.9 219.8L227.6 224.7L229.0 226.9L229.0 228.8L226.8 229.4L225.8 228.8L223.6 225.7L222.2 224.5L220.4 224.0L219.4 224.0L218.3 225.2L217.6 227.4L218.6 227.9L219.7 228.1L220.8 227.8L221.5 226.7L223.6 227.6L224.4 228.4L224.4 229.4L225.4 230.8L226.8 232.0L227.9 233.2L229.0 235.0L228.3 235.5L228.3 236.0L229.0 237.7L229.7 237.0L229.3 235.7L230.4 236.0L232.6 237.7L233.3 238.6L235.0 243.1L234.3 246.0L234.3 246.3L235.0 247.2L235.0 247.7L234.7 248.4L234.0 248.9L233.6 249.5L234.3 251.1L235.8 252.7L234.7 253.6L234.7 254.3L235.8 254.4L236.5 253.4L237.2 253.4L237.9 257.5L237.9 259.0L238.6 259.0L238.6 257.5L239.7 254.1L239.7 252.4L240.4 252.6L241.1 253.4L241.5 254.3L241.8 256.3L243.3 258.8L245.7 267.3L245.4 290.7ZM231.5 234.0L231.5 232.8L230.4 230.1L230.4 229.1L230.8 228.1L230.8 227.3L230.4 226.1L231.5 227.3L234.0 232.0L234.7 234.5L238.3 240.1L240.0 248.9L240.0 250.9L238.6 252.1L236.5 250.4L236.8 242.8L236.5 240.6L235.4 239.7L235.0 238.9L231.5 234.0ZM31.1 92.5L30.0 92.0L29.7 91.0L29.7 90.1L31.1 89.6L35.7 89.6L39.6 90.6L43.9 92.3L47.8 94.7L51.1 97.9L49.6 97.6L46.8 96.2L45.0 95.9L49.6 101.1L50.3 102.6L48.2 102.3L46.4 101.1L44.6 99.3L43.6 98.8L39.6 95.0L35.7 93.3L33.2 92.7L31.1 92.5ZM32.9 50.0L32.2 50.8L31.1 51.5L28.6 51.6L26.4 50.8L25.4 49.6L25.4 45.6L25.7 44.5L26.4 44.5L27.5 46.6L28.9 47.1L31.1 47.2L31.8 47.6L32.9 50.0ZM49.3 38.3L47.5 37.1L46.1 34.9L43.6 30.0L44.6 28.3L45.0 26.1L45.7 24.5L47.8 23.9L48.9 24.3L48.9 25.1L48.6 26.3L48.6 30.4L48.9 31.2L50.3 32.2L52.1 32.1L52.5 32.4L52.5 33.9L52.8 34.6L56.8 36.6L57.1 37.6L56.4 38.3L55.3 38.3L52.1 37.1L50.3 38.1L49.3 38.3Z" fill="url(#lkFill)"/>
+            <g class="lk-routes"></g>
+            <g class="lk-pins"></g>
+            <text class="lk-sea" x="4" y="410">Indian Ocean</text>
+            <text class="lk-sea" x="128" y="22">Palk Strait</text>
+          </svg>
+          <figcaption class="map-tip" id="mapTip" aria-live="polite">Tap a pin or a branch to see it on the map</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>How renting works</h2>
+      <ol class="steps" style="margin-top:1rem">
+        <li class="current">Pick a vehicle and dates</li>
+        <li>Choose with or without driver, pick-up and drop-off</li>
+        <li>Pay and download your receipt</li>
+        <li>Collect with your NIC (and licence if self-drive)</li>
+      </ol>
+      <p class="muted" style="max-width:62ch">Bring the <strong>original</strong> NIC when you collect, plus your driving licence for self-drive rentals. If you return late, each extra day adds <span th:text="${lateFeeRule}">10% of the rental</span>.</p>
+    </section>
+
+    <section class="section" th:if="${!latestReviews.isEmpty()}">
+      <div class="panel-title"><h2>What customers say</h2><a th:href="@{/reviews}" class="btn ghost small">Read all reviews</a></div>
+      <p class="muted" style="margin-top:-.5rem">Every review is published, the good and the bad.</p>
+      <div class="grid cols-3">
+        <article class="review" th:each="r : ${latestReviews}" th:classappend="${r.rating <= 2} ? 'low'">
+          <div class="rating-line"><span th:replace="~{fragments/layout :: stars(${r.rating})}"></span></div>
+          <blockquote th:text="${r.comment != null} ? ${r.comment} : 'Rated ' + ${r.rating} + ' out of 5'">Great</blockquote>
+          <div class="small muted"><span th:text="${r.customerName}">Name</span>, <span th:text="${r.vehicleModel}">Car</span></div>
+        </article>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

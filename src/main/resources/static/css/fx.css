@@ -1,0 +1,64 @@
+/* fx.css - modern 3D + motion layer (pure CSS, no libraries). Loaded after ui-refresh.css */
+
+/* ---------- login / register ---------- */
+.auth2 { perspective: 1400px; }
+.auth2-card { animation-fill-mode: backwards; transform-style: preserve-3d; will-change: transform;
+  transition: transform .18s ease-out, box-shadow .3s; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.auth2-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3; opacity: var(--glare, 0);
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.12), transparent 60%); transition: opacity .3s; }
+.auth2-show .auth2-car { transform: translate3d(calc(var(--px, 0) * 18px), calc(var(--py, 0) * 10px), 40px); animation: none; transition: transform .2s ease-out; }
+.auth2-show .auth2-chip { transform: translate3d(calc(var(--px, 0) * -14px), calc(var(--py, 0) * -8px), 60px); transition: transform .2s ease-out; }
+.auth2-show h2 { transform: translate3d(calc(var(--px, 0) * 6px), calc(var(--py, 0) * 4px), 25px); transition: transform .2s ease-out; }
+
+/* 3D orbit rings behind the car */
+.fx-orbit { position: absolute !important; left: 50%; top: 58%; width: 230px; height: 230px; margin: -115px 0 0 -115px; transform-style: preserve-3d;
+  perspective: 700px; pointer-events: none; opacity: .75; }
+.fx-orbit i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.35); box-shadow: 0 0 22px rgba(255,255,255,.12), inset 0 0 22px rgba(255,255,255,.08); }
+.fx-orbit i:nth-child(1) { animation: fx-spin-a 14s linear infinite; }
+.fx-orbit i:nth-child(2) { inset: 22px; border-style: dashed; animation: fx-spin-b 18s linear infinite; }
+.fx-orbit i:nth-child(3) { inset: 48px; border-color: rgba(242,177,52,.55); animation: fx-spin-c 11s linear infinite; }
+@keyframes fx-spin-a { from { transform: rotateX(68deg) rotateZ(0); } to { transform: rotateX(68deg) rotateZ(360deg); } }
+@keyframes fx-spin-b { from { transform: rotateY(68deg) rotateZ(360deg); } to { transform: rotateY(68deg) rotateZ(0); } }
+@keyframes fx-spin-c { from { transform: rotateX(40deg) rotateY(40deg) rotateZ(0); } to { transform: rotateX(40deg) rotateY(40deg) rotateZ(360deg); } }
+
+/* moving road dashes under the car */
+.fx-road { height: 3px; margin: -.4rem -3rem 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.55) 0 22px, transparent 22px 46px); background-size: 46px 3px;
+  animation: fx-road 1.1s linear infinite; opacity: .55; mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 75%, transparent); }
+@keyframes fx-road { to { background-position: -46px 0; } }
+
+/* form entrance + focus polish */
+.auth2-form > * { animation: fx-rise .6s cubic-bezier(.2,.7,.2,1) backwards; }
+.auth2-form > *:nth-child(2) { animation-delay: .08s; } .auth2-form > *:nth-child(3) { animation-delay: .14s; }
+.auth2-form > *:nth-child(n+4) { animation-delay: .2s; }
+.auth2-form .field { animation: fx-rise .55s cubic-bezier(.2,.7,.2,1) backwards; }
+.auth2-form .field:nth-of-type(2) { animation-delay: .12s; }
+.auth2-form .inp { transition: box-shadow .25s, transform .25s; }
+.auth2-form .inp:focus-within { transform: translateY(-1px); box-shadow: 0 0 0 3px rgba(242,177,52,.22), 0 10px 24px -12px rgba(242,177,52,.45); }
+.auth2-form .btn.block { position: relative; overflow: hidden; }
+.auth2-form .btn.block::after { content: ""; position: absolute; top: 0; left: -70%; width: 45%; height: 100%; transform: skewX(-22deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); animation: fx-shine 3.8s ease-in-out infinite; }
+@keyframes fx-shine { 0%, 55% { left: -70%; } 100% { left: 135%; } }
+@keyframes fx-rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* ---------- dashboards ---------- */
+[data-fx-tilt] { transform-style: preserve-3d; }
+[data-fx-tilt]::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; opacity: var(--glare, 0); transition: opacity .25s;
+  background: radial-gradient(240px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.14), transparent 65%); z-index: 1; }
+.kpi { position: relative; }
+.kpi strong { font-variant-numeric: tabular-nums; }
+.kpi.accent { animation: fx-pulse 3.2s ease-in-out infinite; }
+@keyframes fx-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(242,177,52,0); } 50% { box-shadow: 0 0 28px -6px rgba(242,177,52,.38); } }
+.kpis > .kpi, .grid > .kpi { animation: fx-rise .6s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
+.fleet-split i { transform-origin: left; animation: fx-scalex 1s cubic-bezier(.2,.8,.2,1) .2s backwards; }
+@keyframes fx-scalex { from { transform: scaleX(0); } }
+.page-head h1 { animation: fx-rise .6s cubic-bezier(.2,.7,.2,1) backwards; }
+.page-head .btn.big { animation: fx-rise .6s cubic-bezier(.2,.7,.2,1) .12s backwards; }
+.vehicle-card { transition: transform .22s ease-out, box-shadow .3s, border-color .25s; }
+.vehicle-card:hover { box-shadow: 0 24px 40px -22px rgba(0,0,0,.7); }
+.order:hover { transform: translateX(4px); border-color: rgba(242,177,52,.35); }
+
+@media (max-width: 760px) { .fx-orbit { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .fx-orbit i, .fx-road, .auth2-form .btn.block::after, .kpi.accent { animation: none !important; }
+  .auth2-card, .auth2-show * { transform: none !important; }
+}
