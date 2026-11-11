@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Payment')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('bookings')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <ol class="steps" aria-label="Booking progress" th:if="${!fine}"><li class="done">Rental details</li><li class="done">Summary</li><li class="current">Payment</li></ol>
+    <div class="grid sidebar">
+      <div class="card">
+        <h1 style="font-size:1.8rem" th:text="${fine} ? 'Pay the late fine' : 'Choose how to pay'">Choose how to pay</h1>
+        <div class="alert error" th:if="${paymentError != null}"><div th:text="${paymentError}">Error</div></div>
+
+        <form method="post" th:action="@{/payments/booking/{id}(id=${booking.id})}" th:object="${paymentForm}" novalidate
+              data-pay-form th:attr="data-process-url=@{/payments/booking/{id}/process(id=${booking.id})}"
+              data-loader-text="Processing your payment" data-loader-sub="Please do not close this page">
+
+          <div class="method-picker" role="radiogroup" aria-label="Payment method">
+            <th:block th:each="m : ${methods}">
+              <input type="radio" name="method" th:id="'m-' + ${m.name()}" th:value="${m}" th:checked="${paymentForm.method == m}">
+              <label class="method" th:for="'m-' + ${m.name()}">
+                <svg th:if="${m.name() == 'CARD'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/></svg>
+                <svg th:if="${m.name() == 'WALLET'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
+                <svg th:if="${m.name() == 'BANK_TRANSFER'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></svg>
+                <svg th:if="${m.name() == 'CASH'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v.1M18 14.5v.1"/></svg>
+                <span class="method-tag" th:if="${m.name() == 'CARD'}">Fastest</span>
+                <span class="method-tag cash" th:if="${m.name() == 'CASH'}">No card needed</span>
+                <strong th:text="${m.label}">Card</strong>
+                <small th:text="${m.blurb}">Instant</small>
+              </label>
+            </th:block>
+          </div>
+
+          <div class="suggest-box" th:if="${!fine}">
+            <strong>Not sure which to pick?</strong>
+            <ul>
+              <li><b>Card or wallet</b> &ndash; confirmed instantly, best if you want the booking locked in right now.</li>
+              <li><b>Bank transfer</b> &ndash; pay from your own bank; we confirm when the money arrives.</li>
+              <li><b>Pay with cash</b> &ndash; reserve now and pay in cash at our counter when you collect the vehicle.</li>
+            </ul>
+          </div>
+
+          <!-- CARD -->
+          <div class="method-panel" data-method-panel="CARD" th:classappend="${paymentForm.method.name() == 'CARD'} ? 'active'">
+            <p class="hint">Your full card number and CVV are never saved.</p>
+            <details class="demo-hint"><summary>Demo payment details</summary><div class="alert info"><div>Simulated payment for the project. Use <strong>4242 4242 4242 4242</strong> with any future expiry and CVV. <strong>4000 0000 0000 0002</strong> is always declined.</div></div></details>
+            <div class="credit-card mb" aria-hidden="true">
+              <div class="row between"><span class="chip"></span><span class="small muted">Card preview</span></div>
+              <div class="num" id="cardPreviewNumber">#### #### #### ####</div>
+              <div class="meta"><div>Card holder<strong id="cardPreviewHolder">CARD HOLDER</strong></div><div>Expires<strong id="cardPreviewExpiry">MM/YY</strong></div></div>
+            </div>
+            <div class="form-grid">
+              <div class="field full" th:classappend="${fieldErrors.containsKey('cardHolder')} ? 'invalid'">
+                <label for="cardHolder">Name on card</label>
+                <input id="cardHolder" name="cardHolder" th:value="${paymentForm.cardHolder}" data-card-holder autocomplete="cc-name" required maxlength="60">
+                <div class="field-error" th:if="${fieldErrors.containsKey('cardHolder')}" th:text="${fieldErrors.get('cardHolder')}">Error</div>
+              </div>
+              <div class="field full" th:classappend="${fieldErrors.containsKey('cardNumber')} ? 'invalid'">
+                <label for="cardNumber">Card number</label>
+                <input id="cardNumber" name="cardNumber" th:value="${paymentForm.cardNumber}" data-card-number inputmode="numeric" autocomplete="cc-number" placeholder="4242 4242 4242 4242" required maxlength="23">
+                <div class="field-error" th:if="${fieldErrors.containsKey('cardNumber')}" th:text="${fieldErrors.get('cardNumber')}">Error</div>
+              </div>
+              <div class="field" th:classappend="${fieldErrors.containsKey('expiry')} ? 'invalid'">
+                <label for="expiry">Expiry date</label>
+                <input id="expiry" name="expiry" th:value="${paymentForm.expiry}" data-expiry inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" required maxlength="5">
+                <div class="field-error" th:if="${fieldErrors.containsKey('expiry')}" th:text="${fieldErrors.get('expiry')}">Error</div>
+              </div>
+              <div class="field" th:classappend="${fieldErrors.containsKey('cvv')} ? 'invalid'">
+                <label for="cvv">CVV</label>
+                <input id="cvv" name="cvv" type="password" data-cvv inputmode="numeric" autocomplete="cc-csc" placeholder="123" required maxlength="4">
+                <div class="field-error" th:if="${fieldErrors.containsKey('cvv')}" th:text="${fieldErrors.get('cvv')}">Error</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WALLET -->
+          <div class="method-panel" data-method-panel="WALLET" th:classappend="${paymentForm.method.name() == 'WALLET'} ? 'active'">
+            <p class="hint">The PIN is never saved.</p>
+            <details class="demo-hint"><summary>Demo payment details</summary><div class="alert info"><div>Simulated wallet payment. Use any 4 to 6 digit PIN. A PIN of <strong>0000</strong> simulates "not enough balance".</div></div></details>
+            <div class="form-grid">
+              <div class="field full" th:classappend="${fieldErrors.containsKey('walletProvider')} ? 'invalid'">
+                <label for="walletProvider">Wallet</label>
+                <select id="walletProvider" name="walletProvider"><option value="">Choose your wallet</option>
+                  <option th:each="w : ${walletProviders}" th:value="${w}" th:text="${w}" th:selected="${w == paymentForm.walletProvider}">eZ Cash</option></select>
+                <div class="field-error" th:if="${fieldErrors.containsKey('walletProvider')}" th:text="${fieldErrors.get('walletProvider')}">Error</div>
+              </div>
+              <div class="field" th:classappend="${fieldErrors.containsKey('walletMobile')} ? 'invalid'">
+                <label for="walletMobile">Mobile number</label>
+                <input id="walletMobile" name="walletMobile" th:value="${paymentForm.walletMobile}" inputmode="tel" placeholder="0771234567" maxlength="12">
+                <div class="field-error" th:if="${fieldErrors.containsKey('walletMobile')}" th:text="${fieldErrors.get('walletMobile')}">Error</div>
+              </div>
+              <div class="field" th:classappend="${fieldErrors.containsKey('walletPin')} ? 'invalid'">
+                <label for="walletPin">Wallet PIN</label>
+                <input id="walletPin" name="walletPin" type="password" inputmode="numeric" placeholder="****" maxlength="6">
+                <div class="field-error" th:if="${fieldErrors.containsKey('walletPin')}" th:text="${fieldErrors.get('walletPin')}">Error</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BANK TRANSFER -->
+          <div class="method-panel" data-method-panel="BANK_TRANSFER" th:if="${!fine}" th:classappend="${paymentForm.method.name() == 'BANK_TRANSFER'} ? 'active'">
+            <div class="notice mb">
+              <strong>Transfer LKR <span th:text="${#numbers.formatDecimal(amountDue, 1, 'COMMA', 2, 'POINT')}">0.00</span> to:</strong>
+              <div class="summary-line"><span>Bank</span><strong th:text="${bankName}">Bank</strong></div>
+              <div class="summary-line"><span>Account name</span><strong th:text="${bankAccountName}">Name</strong></div>
+              <div class="summary-line"><span>Account number</span><strong th:text="${bankAccountNumber}">1000</strong></div>
+              <div class="summary-line"><span>Branch</span><strong th:text="${bankBranch}">Colombo</strong></div>
+              <div class="small muted">Use <strong th:text="${booking.reference}">BK-1</strong> as the payment remark. After you transfer, fill in the details below. We confirm the booking once our team sees the money.</div>
+            </div>
+            <div class="form-grid">
+              <div class="field full" th:classappend="${fieldErrors.containsKey('bankName')} ? 'invalid'">
+                <label for="bankName">Your bank</label>
+                <input id="bankName" name="bankName" th:value="${paymentForm.bankName}" maxlength="50" placeholder="e.g. Sampath Bank">
+                <div class="field-error" th:if="${fieldErrors.containsKey('bankName')}" th:text="${fieldErrors.get('bankName')}">Error</div>
+              </div>
+              <div class="field" th:classappend="${fieldErrors.containsKey('slipReference')} ? 'invalid'">
+                <label for="slipReference">Transfer reference (from the slip)</label>
+                <input id="slipReference" name="slipReference" th:value="${paymentForm.slipReference}" maxlength="30" placeholder="TXN123456">
+                <div class="field-error" th:if="${fieldErrors.containsKey('slipReference')}" th:text="${fieldErrors.get('slipReference')}">Error</div>
+              </div>
+              <div class="field" th:classappend="${fieldErrors.containsKey('transferDate')} ? 'invalid'">
+                <label for="transferDate">Transfer date</label>
+                <input id="transferDate" name="transferDate" type="date" th:value="${paymentForm.transferDate}" th:min="${minTransferDate}" th:max="${today}">
+                <div class="field-error" th:if="${fieldErrors.containsKey('transferDate')}" th:text="${fieldErrors.get('transferDate')}">Error</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CASH -->
+          <div class="method-panel" data-method-panel="CASH" th:if="${!fine}" th:classappend="${paymentForm.method.name() == 'CASH'} ? 'active'">
+            <div class="notice mb">
+              <strong>Pay LKR <span th:text="${#numbers.formatDecimal(amountDue, 1, 'COMMA', 2, 'POINT')}">0.00</span> in cash at the counter</strong>
+              <div class="small muted">We hold <strong th:text="${booking.vehicleModel}">the vehicle</strong> for you. Bring this amount and quote
+                <strong th:text="${booking.reference}">BK-1</strong> at our counter. Our staff confirm the cash and your booking is confirmed with a paid receipt by email.
+                If the cash is not received, the booking is released.</div>
+            </div>
+          </div>
+
+          <button class="btn big block" type="submit" data-pay-button>
+            <span th:if="${!fine}">Pay LKR </span><span th:if="${fine}">Pay fine LKR </span><span th:text="${#numbers.formatDecimal(amountDue, 1, 'COMMA', 2, 'POINT')}">28,500.00</span>
+          </button>
+        </form>
+      </div>
+
+      <aside class="card">
+        <h2>Order</h2>
+        <div class="summary-line"><span>Booking</span><span th:text="${booking.reference}">BK-2026-00001</span></div>
+        <div class="summary-line"><span>Vehicle</span><span th:text="${booking.vehicleModel}">Toyota Aqua</span></div>
+        <div class="summary-line" th:if="${!fine}"><span>Travel</span><span th:text="${booking.withDriver} ? 'With driver' : 'Self drive'">Self drive</span></div>
+        <div class="summary-line" th:if="${!fine and booking.baseAmount != null and booking.baseAmount.signum() > 0}"><span>Rental</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.baseAmount, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+        <div class="summary-line" th:if="${!fine and booking.discountAmount != null and booking.discountAmount.signum() > 0}"><span>Discount</span><span>- LKR <span th:text="${#numbers.formatDecimal(booking.discountAmount, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+        <div class="summary-line" th:if="${!fine and booking.driverFee != null and booking.driverFee.signum() > 0}"><span>Driver</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.driverFee, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+        <div class="summary-line" th:if="${!fine and booking.oneWayFee != null and booking.oneWayFee.signum() > 0}"><span>One-way fee</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.oneWayFee, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+        <div class="summary-line"><span>Dates</span><span><span th:text="${#temporals.format(booking.pickupDate, 'dd MMM yyyy')}">10 Oct</span> to <span th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">13 Oct</span></span></div>
+        <div class="summary-line" th:if="${fine}"><span>Late days</span><span th:text="${booking.lateDays}">1</span></div>
+        <div class="summary-line total"><span th:text="${fine} ? 'Late fine' : 'Total'">Total</span><span>LKR <span th:text="${#numbers.formatDecimal(amountDue, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></span></div>
+        <p class="hint" data-hold-note th:if="${!fine}">Held for you for <strong data-countdown th:attr="data-countdown=${booking.createdAt.plusMinutes(holdMinutes)}">15:00</strong></p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<div th:replace="~{fragments/layout :: payOverlay}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
