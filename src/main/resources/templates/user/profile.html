@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('My profile')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('profile')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container" style="max-width:675px">
+    <div class="page-head"><div><h1>My profile</h1><p th:text="${customer.email}">email</p></div>
+      <span class="badge ok" th:if="${!customer.blocked}">Active account</span></div>
+
+    <div class="grid cols-2">
+      <form class="card" method="post" th:action="@{/profile}" th:object="${profileForm}" novalidate data-validate data-loader-text="Saving your profile" data-loader-sub="One moment">
+        <h2>Your details</h2>
+        <div class="field" th:classappend="${#fields.hasErrors('fullName')} ? 'invalid'"><label for="fullName">Full name</label>
+          <input id="fullName" data-rule="name" th:field="*{fullName}" required maxlength="80">
+          <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Error</div></div>
+        <div class="field"><label for="emailRO">Email</label><input id="emailRO" th:value="${customer.email}" disabled>
+          <div class="hint">Email cannot be changed here. Ask the rental company if it must change.</div></div>
+        <div class="field" th:classappend="${#fields.hasErrors('phone')} ? 'invalid'"><label for="phone">Phone number</label>
+          <input id="phone" data-rule="phone" type="tel" th:field="*{phone}" required pattern="\+?[0-9 \-]{9,16}">
+          <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</div></div>
+        <div class="field" th:classappend="${#fields.hasErrors('address')} ? 'invalid'"><label for="address">Address</label>
+          <input id="address" data-rule="address" th:field="*{address}" maxlength="160">
+          <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Error</div></div>
+        <button class="btn" type="submit">Save changes</button>
+      </form>
+
+      <form class="card" method="post" th:action="@{/profile/password}" th:object="${passwordForm}" novalidate data-validate data-loader-text="Changing your password" data-loader-sub="One moment">
+        <h2>Change password</h2>
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}">
+  <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div>
+</div>
+        <div class="field" th:classappend="${#fields.hasErrors('currentPassword')} ? 'invalid'"><label for="currentPassword">Current password</label>
+          <div class="pw-wrap"><input id="currentPassword" data-rule="required:Enter your current password" type="password" th:field="*{currentPassword}" autocomplete="current-password" required><button type="button" class="pw-toggle">Show</button></div>
+          <div class="field-error" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}">Error</div></div>
+        <div class="field" th:classappend="${#fields.hasErrors('newPassword')} ? 'invalid'"><label for="newPassword">New password</label>
+          <div class="pw-wrap"><input id="newPassword" data-rule="password" type="password" th:field="*{newPassword}" autocomplete="new-password" required minlength="8" data-strength="pwMeter"><button type="button" class="pw-toggle">Show</button></div>
+          <div class="meter"><span id="pwMeter"></span></div>
+          <div class="field-error" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}">Error</div></div>
+        <div class="field" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'invalid'"><label for="confirmPassword">Confirm new password</label>
+          <div class="pw-wrap"><input id="confirmPassword" data-rule="match:newPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password" required><button type="button" class="pw-toggle">Show</button></div>
+          <div class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Error</div></div>
+        <button class="btn" type="submit">Update password</button>
+      </form>
+    </div>
+
+    <div class="card mt" style="border-color:rgba(229,72,77,.5)">
+      <h2>Delete account</h2>
+      <p class="muted">This removes your account permanently. Your booking and payment records stay with the rental company.</p>
+      <form method="post" th:action="@{/profile/delete}" data-confirm="Your account will be deleted and you will be signed out. This cannot be undone." data-confirm-title="Delete your account?" data-confirm-button="Delete account" data-loader-text="Deleting your account" data-loader-sub="Signing you out">
+        <button class="btn danger" type="submit">Delete my account</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

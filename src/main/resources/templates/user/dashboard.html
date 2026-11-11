@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('dashboard')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head">
+      <div><h1>Hello, <span th:text="${customer.fullName}">Customer</span></h1><p>Here is where your rentals stand.</p></div>
+      <a th:href="@{/vehicles}" class="btn big">Book a vehicle</a>
+    </div>
+
+    <section class="premium-card" th:if="${premium}">
+      <div>
+        <span class="premium-tag">&#9733; Premium member</span>
+        <h2>Your Premium perks</h2>
+        <ul>
+          <li><strong>10% off</strong> every rental, <strong>15% off</strong> for 7+ days</li>
+          <li><strong>Gentler late fees</strong> if you return late</li>
+          <li><strong>Premium-only promo codes</strong> (see below)</li>
+        </ul>
+      </div>
+      <a class="btn" th:href="@{/vehicles}">Book with Premium rates</a>
+    </section>
+    <section class="premium-card progress" th:unless="${premium}">
+      <div>
+        <span class="premium-tag">Become Premium</span>
+        <h2>Book more than <span th:text="${premiumThreshold}">10</span> times and unlock Premium</h2>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" th:attr="aria-valuenow=${premiumProgress}"><i th:style="'width:' + ${premiumProgress} + '%'"></i></div>
+        <p class="muted small"><span th:text="${membershipCount}">0</span> bookings so far &ndash; <strong th:text="${bookingsToPremium}">11</strong> more to go. Premium gets cheaper rates, premium-only promo codes and gentler late fees.</p>
+      </div>
+    </section>
+
+    <section class="offers" th:if="${!offers.isEmpty()}">
+      <div class="panel-title"><h2>Promo codes for you</h2><span class="muted small">Type the code on the booking form</span></div>
+      <div class="offer-row">
+        <div class="offer" th:each="o : ${offers}">
+          <strong class="code" th:text="${o.code}">CODE</strong>
+          <span><b th:text="${o.percentOff} + '% off'">10% off</b> <span class="muted small" th:text="${o.description}">desc</span></span>
+          <span class="badge warn" th:if="${o.premiumOnly}">Premium</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="kpis three">
+      <div class="kpi accent"><span>Active bookings</span><strong th:text="${activeCount}">1</strong></div>
+      <div class="kpi"><span>Completed rentals</span><strong th:text="${completedCount}">2</strong></div>
+      <div class="kpi"><span>Paid so far</span><strong>LKR <span th:text="${#numbers.formatDecimal(totalSpent, 1, 'COMMA', 2, 'POINT')}">0.00</span></strong></div>
+    </div>
+
+    <div class="panel-title"><h2>Active bookings</h2><a th:href="@{/bookings}" class="btn ghost small">See all</a></div>
+    <th:block th:each="b : ${activeOrders}">
+      <article class="order">
+        <div>
+          <div class="row"><h3 th:text="${b.vehicleModel}">Toyota Aqua</h3><span class="badge" th:classappend="${b.status.css}" th:text="${b.status.label}">Confirmed</span></div>
+          <div class="when"><span th:text="${b.reference}">BK-1</span> &nbsp;|&nbsp; <span th:text="${#temporals.format(b.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</span> to <span th:text="${#temporals.format(b.returnDate, 'dd MMM yyyy')}">13 Oct 2026</span></div>
+        </div>
+        <div class="side"><strong>LKR <span th:text="${#numbers.formatDecimal(b.totalPayable, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></strong><a class="btn small ghost" th:href="@{/bookings/{id}(id=${b.id})}">Details</a></div>
+      </article>
+    </th:block>
+    <div class="empty" th:if="${activeOrders.isEmpty()}"><h3>No active bookings</h3><p>Pick a vehicle and your dates to get started.</p><a class="btn" th:href="@{/vehicles}">Browse vehicles</a></div>
+
+    <div class="row mt">
+      <a class="btn ghost" th:href="@{/bookings/history}">Booking history</a>
+      <a class="btn ghost" th:href="@{/payments}">Payment history</a>
+      <a class="btn ghost" th:href="@{/reviews/my}">My reviews</a>
+    </div>
+
+    <section class="section">
+      <div class="panel-title"><h2>Available to book</h2><a th:href="@{/vehicles}" class="btn ghost small">All vehicles</a></div>
+      <div class="grid cols-4">
+        <th:block th:each="card : ${featured}"><a th:replace="~{fragments/cards :: vehicleCard(${card}, '')}"></a></th:block>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
