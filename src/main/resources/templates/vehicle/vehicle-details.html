@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en"
+      th:with="metaDescription=${card.vehicle.fullName + ' for hire in Sri Lanka from LKR ' + #numbers.formatDecimal(card.vehicle.pricePerDay, 1, 'COMMA', 0, 'POINT') + ' per day. Check availability and book online with DriveLanka Rentals.'}">
+<head th:replace="~{fragments/layout :: head(${card.vehicle.fullName})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('vehicles')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <p class="small"><a th:href="@{/vehicles}">All vehicles</a></p>
+    <div class="detail-hero">
+      <div class="stack">
+        <div class="detail-pic">
+          <img th:with="img=${card.vehicle.imageUrl != null and !card.vehicle.imageUrl.isEmpty() ? card.vehicle.imageUrl : '/images/photos/' + #strings.toLowerCase(card.vehicle.type.name()) + '.jpg'}"
+               th:src="@{${img}}" th:classappend="${#strings.endsWith(img, '.svg')} ? 'contain'" th:alt="${card.vehicle.fullName}">
+        </div>
+        <div class="card">
+          <div class="row between">
+            <h1 style="font-size:2rem;margin:0" th:text="${card.vehicle.fullName}">Toyota Axio</h1>
+            <span class="badge" th:classappend="${#strings.toLowerCase(card.displayStatus.name())}" th:text="${card.displayStatus.label}">Available</span>
+          </div>
+          <div class="rating-line mt" th:if="${card.reviewCount > 0}">
+            <span th:replace="~{fragments/layout :: stars(${card.averageRating})}"></span>
+            <span th:text="${card.averageRating} + ' from ' + ${card.reviewCount} + (${card.reviewCount == 1} ? ' review' : ' reviews')">4.8</span>
+          </div>
+          <p class="muted" th:text="${card.vehicle.description}">Description</p>
+          <p th:text="${card.vehicle.featureSummary}">Summary</p>
+          <dl class="facts">
+            <div><dt>Type</dt><dd th:text="${card.vehicle.type.label}">Car</dd></div>
+            <div><dt>Fuel</dt><dd th:text="${card.vehicle.fuelType.label}">Hybrid</dd></div>
+            <div><dt>Seats</dt><dd th:text="${card.vehicle.seatingCapacity}">5</dd></div>
+            <div><dt>Transmission</dt><dd th:text="${card.vehicle.transmission.label}">Automatic</dd></div>
+            <div><dt>Year</dt><dd th:text="${card.vehicle.year > 0} ? ${card.vehicle.year} : '-'">2019</dd></div>
+            <div><dt>Capacity</dt><dd th:text="${card.vehicle.capacityInfo}">4 doors</dd></div>
+            <div><dt>Registration</dt><dd th:text="${card.vehicle.registrationNo}">CAB-1234</dd></div>
+          </dl>
+          <div class="driver-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/><path d="M12 9.5V3M9.8 13.2L4 16M14.2 13.2L20 16"/></svg>
+            <span th:if="${card.vehicle.driverAvailable}">Rent it self-drive, or add a driver on the booking page.</span>
+            <span th:unless="${card.vehicle.driverAvailable}">Self-drive only: a driver cannot be added to a bike.</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="card sticky-aside">
+        <div class="price" style="margin-bottom:1rem">
+          <strong style="font-size:1.8rem">LKR <span th:text="${#numbers.formatDecimal(card.vehicle.pricePerDay, 1, 'COMMA', 2, 'POINT')}">9,500.00</span></strong><span>per day</span>
+        </div>
+
+        <div class="alert warn" th:if="${!card.bookable}">This vehicle is under maintenance and cannot be booked right now.</div>
+        <div class="alert info" th:if="${card.bookable and card.displayStatus.name() == 'RENTED'}">It is out on rental at the moment. You can still book dates after it comes back.</div>
+
+        <form th:if="${card.bookable}" method="get" th:action="@{/bookings/new}" data-loader data-loader-text="Starting your booking" data-loader-sub="Opening the rental form" data-availability th:attr="data-vehicle-id=${card.vehicle.id}">
+          <input type="hidden" name="vehicleId" th:value="${card.vehicle.id}">
+          <div class="cal" data-calendar role="group" aria-label="Choose your dates" th:attr="data-vehicle-id=${card.vehicle.id}"></div>
+          <div class="field"><label for="pickupDate">Pickup date</label><input id="pickupDate" name="pickupDate" type="date" data-pickup th:min="${today}" th:value="${pickupDate}" required></div>
+          <div class="field"><label for="returnDate">Return date</label><input id="returnDate" name="returnDate" type="date" data-return th:min="${today.plusDays(1)}" th:value="${returnDate}" required></div>
+          <div class="availability-box" aria-live="polite"></div>
+          <button type="submit" class="btn block big mt" data-needs-available disabled>Continue to booking</button>
+        </form>
+        <p class="hint mt">Questions? Read the <a th:href="@{/faq}">FAQ</a>. Late returns are charged <span th:text="${lateFeeRule}">10% per day</span>. Pay by card, wallet, bank transfer or cash after confirming your details.</p>
+      </aside>
+    </div>
+
+    <section class="section">
+      <h2>Reviews</h2>
+      <div class="grid cols-2" th:if="${!reviewList.isEmpty()}">
+        <article class="review" th:each="r : ${reviewList}" th:classappend="${r.rating <= 2} ? 'low'">
+          <div class="row between"><span th:replace="~{fragments/layout :: stars(${r.rating})}"></span><span class="small muted" th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy')}">Date</span></div>
+          <blockquote th:text="${r.comment != null} ? ${r.comment} : 'No comment left.'">Comment</blockquote>
+          <div class="small muted" th:text="${r.customerName}">Name</div>
+        </article>
+      </div>
+      <div class="empty" th:if="${reviewList.isEmpty()}"><h3>No reviews yet</h3><p>Reviews appear here after customers complete a rental.</p></div>
+    </section>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

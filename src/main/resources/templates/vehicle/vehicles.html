@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Vehicles')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('vehicles')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head">
+      <div><h1>Vehicles</h1><p>Cars, vans, bikes and trucks, with prices per day. Add your dates to see only what is free.</p></div>
+      <span class="muted" th:text="${cards.size()} + (${cards.size() == 1} ? ' vehicle' : ' vehicles')">12 vehicles</span>
+    </div>
+
+    <form class="card stack mb" method="get" th:action="@{/vehicles}" th:object="${filter}" data-autosubmit>
+      <div class="chips" role="radiogroup" aria-label="Vehicle type">
+        <span><input type="radio" id="t-all" name="type" value="" th:checked="${filter.type == null}" data-autosubmit-trigger><label for="t-all">All</label></span>
+        <span th:each="t : ${types}"><input type="radio" th:id="${'t-' + t.name()}" name="type" th:value="${t.name()}" th:checked="${filter.type == t}" data-autosubmit-trigger><label th:for="${'t-' + t.name()}" th:text="${t.label} + 's'">Cars</label></span>
+      </div>
+      <div class="grid cols-4">
+        <div><label for="keyword">Search</label><input id="keyword" type="search" th:field="*{keyword}" placeholder="Brand, model or registration"></div>
+        <div><label for="fuelType">Fuel</label>
+          <select id="fuelType" th:field="*{fuelType}"><option value="">Any fuel</option><option th:each="f : ${fuels}" th:value="${f}" th:text="${f.label}">Petrol</option></select></div>
+        <div><label for="sort">Sort by</label>
+          <select id="sort" th:field="*{sort}"><option value="newest">Newest first</option><option value="price_asc">Price, low to high</option><option value="price_desc">Price, high to low</option><option value="seats">Most seats</option></select></div>
+        <div><label for="minSeats">Seats (at least)</label><input id="minSeats" type="number" min="1" max="60" th:field="*{minSeats}" placeholder="Any"></div>
+        <div><label for="maxPrice">Max price per day (LKR)</label><input id="maxPrice" type="number" min="0" step="500" th:field="*{maxPrice}" placeholder="Any"></div>
+        <div><label for="pickupDate">Pickup date</label><input id="pickupDate" type="date" th:field="*{pickupDate}" th:min="${today}"></div>
+        <div><label for="returnDate">Return date</label><input id="returnDate" type="date" th:field="*{returnDate}" th:min="${today.plusDays(1)}"></div>
+      </div>
+      <div class="row">
+        <button class="btn" type="submit">Show vehicles</button>
+        <a class="btn ghost" th:href="@{/vehicles}">Clear filters</a>
+      </div>
+    </form>
+
+    <div class="grid cols-3" th:if="${!cards.isEmpty()}">
+      <th:block th:each="card : ${cards}"><a th:replace="~{fragments/cards :: vehicleCard(${card}, ${filter.dateQuery})}"></a></th:block>
+    </div>
+    <div class="empty" th:if="${cards.isEmpty()}">
+      <h3>No vehicles match</h3>
+      <p>Try a different date range, or clear a filter such as fuel type or seats.</p>
+      <a class="btn ghost" th:href="@{/vehicles}">Clear filters</a>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
