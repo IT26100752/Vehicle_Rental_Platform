@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Payment history')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('bookings')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head"><div><h1>Payment history</h1><p>Every payment (card, wallet, bank transfer or cash) and refund on your account, with downloadable receipts.</p></div><a th:href="@{/bookings}" class="btn ghost">Active bookings</a></div>
+    <div class="card flat" th:if="${!payments.isEmpty()}"><div class="table-wrap"><table>
+      <thead><tr><th>Date</th><th>Reference</th><th>Booking</th><th>For</th><th>Method</th><th>Amount</th><th>Status</th><th>Receipt</th></tr></thead>
+      <tbody><tr th:each="p : ${payments}">
+        <td class="nowrap" th:text="${#temporals.format(p.paidAt, 'dd MMM yyyy HH:mm')}">Date</td>
+        <td><a th:href="@{/payments/{id}/receipt(id=${p.id})}" th:text="${p.reference}">PAY-1</a></td>
+        <td><a th:href="@{/bookings/{id}(id=${p.bookingId})}" th:text="${p.createdAt != null} ? 'BK-' + ${#temporals.year(p.createdAt)} + '-' + ${#numbers.formatInteger(p.bookingId, 5, 'NONE')} : '#' + ${p.bookingId}">BK-2026-00001</a></td>
+        <td th:text="${p.kind.label}">Rental</td>
+        <td th:text="${p.methodDetails}">Visa ending 4242</td>
+        <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(p.amount, 1, 'COMMA', 2, 'POINT')}">1.00</span></td>
+        <td><span class="badge" th:classappend="${p.status.css}" th:text="${p.status.label}">Paid</span><div class="small muted" th:if="${p.failureReason != null}" th:text="${p.failureReason}">reason</div></td>
+        <td class="nowrap"><a class="btn small ghost" data-no-loader download th:if="${p.receiptAvailable}" th:href="@{/payments/{id}/receipt.pdf(id=${p.id})}">PDF</a>
+          <a class="btn small ghost" th:if="${p.status.name() == 'PENDING_VERIFICATION'}" th:href="@{/payments/{id}/receipt(id=${p.id})}">Status</a></td>
+      </tr></tbody></table></div></div>
+    <div class="empty" th:if="${payments.isEmpty()}"><h3>No payments yet</h3><p>Payments appear here once you pay for a booking.</p></div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

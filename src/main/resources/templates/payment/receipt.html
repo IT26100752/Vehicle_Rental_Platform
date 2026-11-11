@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:with="pageTitle='Receipt ' + ${receipt.bookingRef}">
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('bookings')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container receipt-wrap">
+
+    <!-- animated status header (shown right after paying) -->
+    <div class="receipt-hero" th:if="${justPaid}" th:attr="data-status=${receipt.statusCode}">
+      <svg class="receipt-tick" th:if="${receipt.statusCode == 'PAID' or receipt.statusCode == null}" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M23 37l9 9 17-20"/></svg>
+      <svg class="receipt-tick pending" th:if="${receipt.statusCode == 'PENDING'}" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M36 20v17l11 7"/></svg>
+      <svg class="receipt-tick failed" th:if="${receipt.statusCode == 'FAILED'}" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M26 26l20 20M46 26L26 46"/></svg>
+      <svg class="receipt-tick refunded" th:if="${receipt.statusCode == 'REFUNDED'}" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M25 30h16a8 8 0 010 16H27M25 30l7-7M25 30l7 7"/></svg>
+      <h1 th:switch="${receipt.statusCode}">
+        <span th:case="'PENDING'">Payment submitted</span>
+        <span th:case="'FAILED'">Payment failed</span>
+        <span th:case="'REFUNDED'">Payment refunded</span>
+        <span th:case="*">Payment verified</span>
+      </h1>
+      <p class="muted" th:if="${receipt.statusCode == 'PENDING'}">We will confirm your booking as soon as our team verifies the payment (bank transfer or cash at the counter).</p>
+      <p class="muted" th:if="${receipt.statusCode == 'PAID'}">Your receipt is ready below. A copy is also sent to your email.</p>
+    </div>
+
+    <div class="receipt-actions no-print">
+      <a class="btn" data-no-loader download th:href="${adminView} ? @{/admin/payments/{id}/receipt.pdf(id=${paymentId})} : @{/payments/{id}/receipt.pdf(id=${paymentId})}">Download PDF</a>
+      <button class="btn ghost" type="button" onclick="window.print()">Print</button>
+      <a class="btn ghost" th:if="${!adminView}" th:href="@{/bookings}">View booking</a>
+      <a class="btn ghost" th:if="${adminView}" th:href="@{/admin/payments}">Back to payments</a>
+    </div>
+
+    <article class="receipt-paper" id="receiptPaper">
+      <header class="rp-head">
+        <div>
+          <div class="rp-company" th:text="${receipt.companyName}">DriveLanka Rentals</div>
+          <div class="rp-small" th:text="${receipt.companyAddress}">Address</div>
+          <div class="rp-small"><span th:text="${receipt.companyPhone}">Phone</span> <span th:if="${receipt.companyEmail}">| <span th:text="${receipt.companyEmail}">email</span></span></div>
+        </div>
+        <div class="rp-meta">
+          <div class="rp-small">PAYMENT RECEIPT</div>
+          <div class="rp-no" th:text="${receipt.receiptNo}">RC-2026-00001</div>
+          <div class="rp-small" th:text="${#temporals.format(receipt.issuedAt, 'dd MMM yyyy HH:mm')}">01 Nov 2026</div>
+        </div>
+      </header>
+
+      <div class="rp-status" th:classappend="'s-' + ${#strings.toLowerCase(receipt.statusCode)}">
+        <span th:text="${receipt.statusLabel}">PAID</span>
+        <small th:text="${receipt.paymentKind} + ' payment'">Rental payment</small>
+      </div>
+
+      <section class="rp-cols">
+        <div>
+          <h3>Billed to</h3>
+          <dl>
+            <dt>Name</dt><dd th:text="${receipt.customerName}">Name</dd>
+            <dt>Email</dt><dd th:text="${receipt.customerEmail}">email</dd>
+            <dt th:if="${receipt.customerPhone}">Phone</dt><dd th:if="${receipt.customerPhone}" th:text="${receipt.customerPhone}">077</dd>
+          </dl>
+        </div>
+        <div>
+          <h3>Booking</h3>
+          <dl>
+            <dt>Booking ref</dt><dd th:text="${receipt.bookingRef}">BK-2026-00001</dd>
+            <dt>Vehicle</dt><dd><span th:text="${receipt.vehicleName}">Toyota Axio</span> (<span th:text="${receipt.vehicleRegNo}">CAD-1</span>)</dd>
+            <dt>Type</dt><dd th:text="${receipt.vehicleType}">Car</dd>
+            <dt>Dates</dt><dd><span th:text="${#temporals.format(receipt.pickupDate, 'dd MMM yyyy')}">1 Nov</span> to <span th:text="${#temporals.format(receipt.returnDate, 'dd MMM yyyy')}">4 Nov</span> (<span th:text="${receipt.days} + (${receipt.days == 1} ? ' day' : ' days')">3 days</span>)</dd>
+            <dt th:if="${receipt.pickupTime}">Pickup time</dt><dd th:if="${receipt.pickupTime}" th:text="${receipt.pickupTime}">08:30</dd>
+            <dt>Pickup</dt><dd th:text="${receipt.pickupLocation}">Colombo</dd>
+            <dt>Drop-off</dt><dd th:text="${receipt.dropLocation}">Kandy</dd>
+            <dt>Driver</dt>
+            <dd th:if="${receipt.withDriver}"><span th:text="${receipt.driverName != null} ? ${receipt.driverName} : 'To be assigned'">Name</span><span th:if="${receipt.driverPhone}"> - <span th:text="${receipt.driverPhone}">071</span></span></dd>
+            <dd th:unless="${receipt.withDriver}">Self-drive</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="rp-pay">
+        <h3>Payment</h3>
+        <dl>
+          <dt>Method</dt><dd th:text="${receipt.paymentMethod}">Card</dd>
+          <dt>Details</dt><dd th:text="${receipt.paymentDetails}">Visa ending 4242</dd>
+          <dt>Reference</dt><dd th:text="${receipt.paymentReference}">PAY-AB12CD34</dd>
+        </dl>
+      </section>
+
+      <div class="rp-table-wrap">
+        <table class="rp-table">
+          <thead><tr><th>Description</th><th>Detail</th><th class="right">Amount (LKR)</th></tr></thead>
+          <tbody>
+            <tr th:each="l : ${receipt.lines}" th:classappend="${l.discount} ? 'disc'">
+              <td><strong th:text="${l.label}">Vehicle rental</strong></td>
+              <td class="muted" th:text="${l.detail}">3 days</td>
+              <td class="right nowrap" th:text="${#numbers.formatDecimal(l.amount, 1, 'COMMA', 2, 'POINT')}">26,400.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rp-total"><span>TOTAL</span><strong>LKR <span th:text="${#numbers.formatDecimal(receipt.total, 1, 'COMMA', 2, 'POINT')}">38,872.00</span></strong></div>
+      <p class="rp-note" th:if="${receipt.note}" th:text="${receipt.note}">Note</p>
+      <footer class="rp-foot">Thank you for choosing <span th:text="${receipt.companyName}">us</span>. This receipt is valid without a signature.</footer>
+    </article>
+
+    <p class="no-print"><a th:href="${adminView} ? @{/admin/payments} : @{/payments}" class="muted">&larr; Back to payment history</a></p>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
