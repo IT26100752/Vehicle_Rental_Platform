@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Review')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('reviews')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container" style="max-width:480px">
+    <form class="card" method="post" th:object="${reviewForm}" novalidate
+          th:action="${editing} ? @{/reviews/{id}/edit(id=${review.id})} : @{/reviews}"
+          data-loader-text="Saving your review" data-loader-sub="Thank you for the feedback">
+      <h1 style="font-size:1.8rem" th:text="${editing} ? 'Edit your review' : 'Rate your rental'">Rate your rental</h1>
+      <p class="muted"><span th:text="${booking.vehicleModel}">Toyota Aqua</span>, <span th:text="${#temporals.format(booking.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</span> to <span th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">13 Oct 2026</span></p>
+      <div class="alert error" th:if="${#fields.hasGlobalErrors()}">
+  <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div>
+</div>
+      <input type="hidden" name="bookingId" th:value="${reviewForm.bookingId}">
+      <div class="field" th:classappend="${#fields.hasErrors('rating')} ? 'invalid'">
+        <label id="ratingLabel">Your rating</label>
+        <div class="star-input" role="radiogroup" aria-labelledby="ratingLabel">
+          <input type="radio" name="rating" id="star5" value="5" th:checked="${reviewForm.rating != null and reviewForm.rating == 5}"><label for="star5" title="5 stars">&#9733;<span class="sr-only">5 stars</span></label>
+          <input type="radio" name="rating" id="star4" value="4" th:checked="${reviewForm.rating != null and reviewForm.rating == 4}"><label for="star4" title="4 stars">&#9733;<span class="sr-only">4 stars</span></label>
+          <input type="radio" name="rating" id="star3" value="3" th:checked="${reviewForm.rating != null and reviewForm.rating == 3}"><label for="star3" title="3 stars">&#9733;<span class="sr-only">3 stars</span></label>
+          <input type="radio" name="rating" id="star2" value="2" th:checked="${reviewForm.rating != null and reviewForm.rating == 2}"><label for="star2" title="2 stars">&#9733;<span class="sr-only">2 stars</span></label>
+          <input type="radio" name="rating" id="star1" value="1" th:checked="${reviewForm.rating != null and reviewForm.rating == 1}"><label for="star1" title="1 star">&#9733;<span class="sr-only">1 star</span></label>
+        </div>
+        <div class="field-error" th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}">Error</div>
+      </div>
+      <div class="field" th:classappend="${#fields.hasErrors('comment')} ? 'invalid'">
+        <label for="comment">Comment (optional)</label>
+        <textarea id="comment" th:field="*{comment}" maxlength="500" placeholder="How was the vehicle, the pickup and the return?"></textarea>
+        <div class="field-error" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}">Error</div>
+      </div>
+      <div class="notice mb" data-low-note hidden>
+        <strong>We are sorry it was not a good experience.</strong> Every honest review is published, including low ones.
+        If something went wrong with your rental you can also <a th:href="@{/complaints/new(bookingId=${reviewForm.bookingId})}">raise a complaint</a> so our team can put it right.
+      </div>
+      <div class="form-actions">
+        <button class="btn big" type="submit" th:text="${editing} ? 'Save review' : 'Submit review'">Submit review</button>
+        <a class="btn ghost big" th:href="@{/reviews/my}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+(function () {
+  var note = document.querySelector('[data-low-note]');
+  function sync() {
+    var c = document.querySelector('input[name="rating"]:checked');
+    if (note) note.hidden = !(c && Number(c.value) <= 2);
+  }
+  document.querySelectorAll('input[name="rating"]').forEach(function (r) { r.addEventListener('change', sync); });
+  sync();
+})();
+</script>
+</body>
+</html>

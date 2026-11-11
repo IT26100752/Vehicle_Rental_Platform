@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('My complaints')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('complaints')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head">
+      <div><h1>My complaints</h1><p>Tell us when something went wrong and follow our reply here.</p></div>
+      <a class="btn" th:href="@{/complaints/new}">New complaint</a>
+    </div>
+
+    <nav class="tabs-bar" aria-label="Complaint status">
+      <a class="tab-link" th:href="@{/complaints}" th:classappend="${status == null} ? 'active'">All <span class="tab-count" th:text="${total}">0</span></a>
+      <a class="tab-link" th:each="s : ${statuses}" th:href="@{/complaints(status=${s})}" th:classappend="${status == s} ? 'active'">
+        <span th:text="${s.label}">Open</span> <span class="tab-count" th:text="${counts.get(s)}">0</span></a>
+    </nav>
+
+    <div class="stack tab-panel" th:if="${!complaintList.isEmpty()}">
+      <a class="card complaint-row" th:each="c : ${complaintList}" th:href="@{/complaints/{id}(id=${c.id})}">
+        <div class="row between">
+          <strong th:text="${c.subject}">Subject</strong>
+          <span class="badge" th:classappend="${c.status.css}" th:text="${c.status.label}">Open</span>
+        </div>
+        <div class="small muted row">
+          <span th:text="${c.reference}">CMP-2026-00001</span>
+          <span th:text="${c.category.label}">Category</span>
+          <span th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy')}">01 Oct 2026</span>
+        </div>
+      </a>
+    </div>
+    <div class="empty" th:if="${complaintList.isEmpty()}"><h3>No complaints here</h3><p>Nothing to show for this tab.</p></div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
