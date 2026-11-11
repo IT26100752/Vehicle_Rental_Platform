@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('My reviews')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('reviews')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head"><div><h1>My reviews</h1><p>Edit or delete what you wrote.</p></div><a class="btn ghost" th:href="@{/bookings/history}">Booking history</a></div>
+    <div class="grid cols-2" th:if="${!reviewList.isEmpty()}">
+      <article class="review" th:each="r : ${reviewList}" th:classappend="${r.hidden} ? 'hidden-review'">
+        <div class="row between"><h3 style="margin:0" th:text="${r.vehicleModel}">Toyota Aqua</h3><span th:replace="~{fragments/layout :: stars(${r.rating})}"></span></div>
+        <blockquote th:text="${r.comment != null} ? ${r.comment} : 'No comment left.'">Comment</blockquote>
+        <div class="admin-reply small" th:if="${r.adminReply != null}"><strong>Reply from DriveLanka:</strong> <span th:text="${r.adminReply}">Thank you</span></div>
+        <div class="row between">
+          <span class="small muted" th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy')}">Date</span>
+          <span class="badge warn" th:if="${r.hidden}">Hidden by staff</span>
+          <div class="row">
+            <a class="btn small ghost" th:href="@{/reviews/{id}/edit(id=${r.id})}">Edit</a>
+            <form class="inline-form" method="post" th:action="@{/reviews/{id}/delete(id=${r.id})}" data-confirm="Your review will be removed." data-confirm-title="Delete this review?" data-confirm-button="Delete review" data-loader-text="Deleting your review" data-loader-sub="One moment">
+              <button class="btn small danger" type="submit">Delete</button></form>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="empty" th:if="${reviewList.isEmpty()}"><h3>You have not reviewed a rental yet</h3><p>After a rental is completed, you can rate it from your booking history.</p><a class="btn" th:href="@{/bookings/history}">Go to booking history</a></div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

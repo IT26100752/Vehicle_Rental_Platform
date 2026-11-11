@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('New complaint')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('complaints')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <form class="card" style="max-width:540px;margin-inline:auto" method="post" th:action="@{/complaints}" th:object="${complaintForm}" novalidate
+          data-loader-text="Sending your complaint" data-loader-sub="Our team will be notified">
+      <h1 style="font-size:1.8rem">New complaint</h1>
+      <p class="muted">We read every complaint. Please include dates and details so we can fix it quickly.</p>
+      <div class="alert error" th:if="${#fields.hasGlobalErrors()}"><div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div></div>
+      <div class="form-grid">
+        <div class="field" th:classappend="${#fields.hasErrors('category')} ? 'invalid'">
+          <label for="category">Category</label>
+          <select id="category" th:field="*{category}"><option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}">Other</option></select>
+          <div class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Error</div>
+        </div>
+        <div class="field">
+          <label for="bookingId">Related booking (optional)</label>
+          <select id="bookingId" th:field="*{bookingId}"><option value="">Not about a booking</option>
+            <option th:each="b : ${myBookings}" th:value="${b.id}" th:text="${b.reference} + ' - ' + ${b.vehicleModel}">BK-1</option></select>
+        </div>
+        <div class="field full" th:classappend="${#fields.hasErrors('subject')} ? 'invalid'">
+          <label for="subject">Subject</label>
+          <input id="subject" th:field="*{subject}" required maxlength="100" placeholder="e.g. Air conditioning was not working">
+          <div class="field-error" th:if="${#fields.hasErrors('subject')}" th:errors="*{subject}">Error</div>
+        </div>
+        <div class="field full" th:classappend="${#fields.hasErrors('description')} ? 'invalid'">
+          <label for="description">What happened?</label>
+          <textarea id="description" th:field="*{description}" required maxlength="1500" rows="6"></textarea>
+          <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Error</div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn big" type="submit">Send complaint</button>
+        <a class="btn ghost big" th:href="@{/complaints}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:with="pageTitle='Complaint ' + ${complaint.reference}">
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('complaints')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head">
+      <div><h1 th:text="${complaint.subject}">Subject</h1>
+        <p><span th:text="${complaint.reference}">CMP-1</span> &middot; <span th:text="${complaint.category.label}">Other</span> &middot; filed <span th:text="${#temporals.format(complaint.createdAt, 'dd MMM yyyy HH:mm')}">date</span></p></div>
+      <div class="row">
+        <span class="badge" th:classappend="${complaint.status.css}" th:text="${complaint.status.label}">Open</span>
+        <a class="btn ghost small" th:href="@{/complaints}">All complaints</a>
+      </div>
+    </div>
+
+    <div class="grid sidebar">
+      <div>
+        <div class="thread" aria-live="polite">
+          <div class="msg me"><div class="msg-head"><strong>You</strong><span th:text="${#temporals.format(complaint.createdAt, 'dd MMM HH:mm')}">time</span></div>
+            <p th:text="${complaint.description}">Description</p></div>
+          <div class="msg" th:each="r : ${thread}" th:classappend="${r.fromAdmin} ? 'them' : 'me'">
+            <div class="msg-head"><strong th:text="${r.fromAdmin} ? ${r.authorName} + ' (staff)' : 'You'">Name</strong><span th:text="${#temporals.format(r.createdAt, 'dd MMM HH:mm')}">time</span></div>
+            <p th:text="${r.message}">Message</p>
+          </div>
+        </div>
+
+        <div class="notice mt" th:if="${complaint.resolutionNote != null and complaint.status.name() == 'RESOLVED'}">
+          <strong>Resolution:</strong> <span th:text="${complaint.resolutionNote}">Note</span>
+        </div>
+
+        <form class="card mt" method="post" th:action="@{/complaints/{id}/reply(id=${complaint.id})}" th:object="${replyForm}" th:if="${complaint.status.name() != 'CLOSED'}"
+              data-loader-text="Sending your message" data-loader-sub="One moment">
+          <label for="message">Add a message</label>
+          <textarea id="message" th:field="*{message}" rows="3" required maxlength="1500"></textarea>
+          <div class="form-actions"><button class="btn" type="submit">Send message</button></div>
+        </form>
+        <form class="mt" method="post" th:action="@{/complaints/{id}/reopen(id=${complaint.id})}" th:if="${complaint.reopenable}"
+              data-loader-text="Reopening" data-loader-sub="One moment">
+          <button class="btn ghost" type="submit">Not solved? Reopen this complaint</button>
+        </form>
+      </div>
+
+      <aside class="card">
+        <h2>Details</h2>
+        <div class="summary-line"><span>Status</span><span th:text="${complaint.status.label}">Open</span></div>
+        <div class="summary-line"><span>Priority</span><span th:text="${complaint.priority.label}">Medium</span></div>
+        <div class="summary-line" th:if="${booking != null}"><span>Booking</span><a th:href="@{/bookings/{id}(id=${booking.id})}" th:text="${booking.reference}">BK-1</a></div>
+        <div class="summary-line" th:if="${booking != null}"><span>Vehicle</span><span th:text="${booking.vehicleModel}">Car</span></div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
