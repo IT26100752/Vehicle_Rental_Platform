@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Active bookings')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('bookings')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head">
+      <div><h1>Active bookings</h1><p>Bookings that are not finished yet.</p></div>
+      <div class="row"><a th:href="@{/bookings/history}" class="btn ghost">Booking history</a><a th:href="@{/vehicles}" class="btn">Book a vehicle</a></div>
+    </div>
+
+    <th:block th:each="b : ${orders}">
+      <article class="order">
+        <div>
+          <div class="row"><h3 th:text="${b.vehicleModel}">Toyota Aqua</h3>
+            <span class="badge" th:classappend="${b.status.css}" th:text="${b.status.label}">Confirmed</span></div>
+          <div class="when"><span th:text="${b.reference}">BK-2026-00001</span> &nbsp;|&nbsp;
+            <span th:text="${#temporals.format(b.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</span> to <span th:text="${#temporals.format(b.returnDate, 'dd MMM yyyy')}">13 Oct 2026</span>
+            (<span th:text="${b.rentalDays} + (${b.rentalDays == 1} ? ' day' : ' days')">3 days</span>)</div>
+          <div class="alert warn mt" style="margin-bottom:0" th:if="${b.isOverdue(today)}">Return is overdue. Each extra day adds <span th:text="${lateFeeRule}">10%</span>.</div>
+          <div class="alert error mt" style="margin-bottom:0" th:if="${b.status.name() == 'FINE_DUE'}">Late fine of LKR <strong th:text="${#numbers.formatDecimal(b.fineAmount, 1, 'COMMA', 2, 'POINT')}">2,850.00</strong> is due for <span th:text="${b.lateDays} + (${b.lateDays == 1} ? ' late day' : ' late days')">1 late day</span>.</div>
+          <div class="alert warn mt" style="margin-bottom:0" th:if="${b.status.name() == 'AWAITING_VERIFICATION'}">We are checking your bank transfer. You will be notified once the booking is confirmed.</div>
+        </div>
+        <div class="side">
+          <strong>LKR <span th:text="${#numbers.formatDecimal(b.totalPayable, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></strong>
+          <div class="row">
+            <a class="btn small ghost" th:href="@{/bookings/{id}(id=${b.id})}">Details</a>
+            <a class="btn small" th:if="${b.status.name() == 'PENDING_PAYMENT'}" th:href="@{/payments/booking/{id}(id=${b.id})}">Pay now</a>
+            <a class="btn small danger" th:if="${b.status.name() == 'FINE_DUE'}" th:href="@{/payments/booking/{id}(id=${b.id})}">Pay fine</a>
+            <form class="inline-form" method="post" th:if="${b.isCancellableByCustomer(today)}" th:action="@{/bookings/{id}/cancel(id=${b.id})}"
+                  data-confirm="Your rental payment will be refunded." data-confirm-title="Cancel this booking?" data-confirm-button="Cancel booking"
+                  data-loader-text="Cancelling your booking" data-loader-sub="Releasing the vehicle">
+              <button class="btn small ghost" type="submit">Cancel</button>
+            </form>
+          </div>
+        </div>
+      </article>
+    </th:block>
+
+    <div class="empty" th:if="${orders.isEmpty()}">
+      <h3>No active bookings</h3>
+      <p>When you book a vehicle it shows up here until the rental is finished.</p>
+      <a class="btn" th:href="@{/vehicles}">Browse vehicles</a>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

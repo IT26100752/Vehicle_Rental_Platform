@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:with="pageTitle='Book ' + ${card.vehicle.fullName}">
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('vehicles')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <ol class="steps" aria-label="Booking progress">
+      <li class="current">Rental details</li><li class="">Summary</li><li class="">Payment</li>
+    </ol>
+    <div class="grid sidebar">
+      <form class="card" id="bookingForm" method="post" th:action="@{/bookings}" th:object="${bookingForm}" novalidate data-validate
+            data-availability th:attr="data-vehicle-id=${card.vehicle.id}"
+            data-loader-text="Checking availability" data-loader-sub="Preparing your booking summary">
+        <h1 style="font-size:1.8rem">Rental details</h1>
+        <p class="hint" th:if="${bookingForm.nic != null and !bookingForm.nic.isEmpty()}">Your details are filled in from your last booking. Check them and change anything that is different.</p>
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}">
+          <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div>
+        </div>
+        <input type="hidden" th:field="*{vehicleId}">
+        <div class="form-grid">
+          <div class="field" th:classappend="${#fields.hasErrors('pickupDate')} ? 'invalid'">
+            <label for="pickupDate">Pickup date</label>
+            <input id="pickupDate" data-rule="required:Choose your pickup date" type="date" th:field="*{pickupDate}" data-pickup th:min="${today}" required>
+            <div class="field-error" th:if="${#fields.hasErrors('pickupDate')}" th:errors="*{pickupDate}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('returnDate')} ? 'invalid'">
+            <label for="returnDate">Return date</label>
+            <input id="returnDate" data-rule="required:Choose your return date" type="date" th:field="*{returnDate}" data-return th:min="${today.plusDays(1)}" required>
+            <div class="field-error" th:if="${#fields.hasErrors('returnDate')}" th:errors="*{returnDate}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('pickupTime')} ? 'invalid'">
+            <label for="pickupTime">Pickup time</label>
+            <select id="pickupTime" th:field="*{pickupTime}"><option th:each="t : ${pickupTimes}" th:value="${t}" th:text="${t}">09:00</option></select>
+            <div class="field-error" th:if="${#fields.hasErrors('pickupTime')}" th:errors="*{pickupTime}">Error</div>
+          </div>
+          <div class="field"></div>
+
+          <div class="field full">
+            <label>How would you like to travel?</label>
+            <div class="seg block" th:if="${card.vehicle.driverAvailable}">
+              <input type="radio" id="drvNo" name="withDriver" value="false" th:checked="${!bookingForm.withDriver}"><label for="drvNo">Self drive</label>
+              <input type="radio" id="drvYes" name="withDriver" value="true" th:checked="${bookingForm.withDriver}"><label for="drvYes">With a driver</label>
+            </div>
+            <div class="hint" th:if="${card.vehicle.driverAvailable}">A professional driver is assigned for the whole trip: +LKR <span th:text="${#numbers.formatDecimal(driverFee, 1, 'COMMA', 0, 'POINT')}">3,500</span> per day. You do not need to show a licence.</div>
+            <div class="hint" th:unless="${card.vehicle.driverAvailable}">Bikes are self drive only.</div>
+            <input type="hidden" name="withDriver" value="false" th:unless="${card.vehicle.driverAvailable}">
+          </div>
+
+          <div class="field" th:classappend="${#fields.hasErrors('pickupLocationId')} ? 'invalid'">
+            <label for="pickupLocationId">Pickup location</label>
+            <select id="pickupLocationId" data-rule="required:Choose a pickup location" th:field="*{pickupLocationId}" required>
+              <option value="">Choose a location</option>
+              <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.label}">Colombo - Fort</option>
+            </select>
+            <div class="field-error" th:if="${#fields.hasErrors('pickupLocationId')}" th:errors="*{pickupLocationId}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('dropLocationId')} ? 'invalid'">
+            <label for="dropLocationId">Drop-off location</label>
+            <select id="dropLocationId" data-rule="required:Choose a drop-off location" th:field="*{dropLocationId}" required>
+              <option value="">Choose a location</option>
+              <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.label}">Kandy</option>
+            </select>
+            <div class="hint">A different drop-off adds a one-way fee of LKR <span th:text="${#numbers.formatDecimal(oneWayFee, 1, 'COMMA', 0, 'POINT')}">2,500</span>.</div>
+            <div class="field-error" th:if="${#fields.hasErrors('dropLocationId')}" th:errors="*{dropLocationId}">Error</div>
+          </div>
+          <div class="field full" data-show-if="withDriver=true">
+            <div class="show-if-body">
+              <label for="pickupAddress">Pick me up at (optional street address)</label>
+              <input id="pickupAddress" th:field="*{pickupAddress}" maxlength="150" placeholder="House no, street (the driver comes to you)">
+            </div>
+          </div>
+          <div class="field" data-show-if="withDriver=true">
+            <div class="show-if-body">
+              <label for="preferredDriverId">Choose your driver (optional)</label>
+              <select id="preferredDriverId" name="preferredDriverId">
+                <option value="">Any available driver</option>
+                <option th:each="d : ${driverChoices}" th:value="${d.id}" th:selected="${bookingForm.preferredDriverId != null and bookingForm.preferredDriverId == d.id}"
+                        th:text="${d.fullName + (d.languages != null and !d.languages.isBlank() ? ' - ' + d.languages : '')}">Driver</option>
+              </select>
+              <div class="hint">If your driver is busy on those dates we assign another one and tell you.</div>
+            </div>
+          </div>
+          <div class="field" data-show-if="withDriver=true">
+            <div class="show-if-body">
+              <label for="driverNote">Note for the driver (optional)</label>
+              <input id="driverNote" th:field="*{driverNote}" maxlength="200" placeholder="e.g. speaks Tamil, child seat, call before arrival">
+              <div class="field-error" th:if="${#fields.hasErrors('driverNote')}" th:errors="*{driverNote}">Error</div>
+            </div>
+          </div>
+          <div class="full"><div class="availability-box" aria-live="polite"></div></div>
+
+          <div class="field full mt" th:classappend="${#fields.hasErrors('renterName')} ? 'invalid'">
+            <label for="renterName">Name (as on the NIC)</label>
+            <input id="renterName" data-rule="required:Enter your name as it appears on your NIC" th:field="*{renterName}" required minlength="2" maxlength="80" autocomplete="name">
+            <div class="field-error" th:if="${#fields.hasErrors('renterName')}" th:errors="*{renterName}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('nic')} ? 'invalid'">
+            <label for="nic">NIC number</label>
+            <input id="nic" data-rule="nic" data-nic th:field="*{nic}" required maxlength="12" placeholder="200012345678 or 951234567V" pattern="([0-9]{9}[VvXx]|[0-9]{12})">
+            <div class="field-error" th:if="${#fields.hasErrors('nic')}" th:errors="*{nic}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('licenceId')} ? 'invalid'">
+            <label for="licenceId">Driving licence ID <span class="muted small" data-show-if="withDriver=false">(required for self drive)</span></label>
+            <input id="licenceId" data-rule="licence" th:field="*{licenceId}" maxlength="15" placeholder="B1234567" pattern="[A-Za-z0-9\-]{6,15}">
+            <div class="field-error" th:if="${#fields.hasErrors('licenceId')}" th:errors="*{licenceId}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('sex')} ? 'invalid'">
+            <label for="sex">Sex</label>
+            <select id="sex" data-rule="required:Choose male, female or other" data-nic-sex th:field="*{sex}" required><option value="">Choose</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select>
+            <div class="field-error" th:if="${#fields.hasErrors('sex')}" th:errors="*{sex}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('age')} ? 'invalid'">
+            <label for="age">Age</label>
+            <input id="age" data-rule="age" data-nic-age type="number" th:field="*{age}" min="18" max="80" required>
+            <div class="hint">Renters must be 18 or older.</div>
+            <div class="field-error" th:if="${#fields.hasErrors('age')}" th:errors="*{age}">Error</div>
+          </div>
+          <div class="full nic-summary" data-nic-summary hidden>
+            <span>From your NIC: <strong data-nic-text>Male, 25 years old</strong></span>
+            <button type="button" class="linklike" data-nic-edit>Change</button>
+          </div>
+        </div>
+
+        <div class="notice mb">
+          <strong>Bring the originals.</strong> When you collect the vehicle you must show your original NIC (ID card) and, for self drive, your driving licence. Staff verify them before the keys are released.
+        </div>
+        <div class="field full promo-field" th:classappend="${#fields.hasErrors('promoCode')} ? 'invalid'">
+            <label for="promoCode">Promo code <span class="muted small">(optional)</span></label>
+            <input id="promoCode" th:field="*{promoCode}" maxlength="20" placeholder="e.g. WELCOME10" autocomplete="off" style="text-transform:uppercase">
+            <div class="small muted" th:if="${tier != null and tier.name() == 'PREMIUM'}">Premium members can also use premium-only codes.</div>
+            <div class="field-error" th:if="${#fields.hasErrors('promoCode')}" th:errors="*{promoCode}">Error</div>
+          </div>
+        <div class="field" th:classappend="${#fields.hasErrors('documentsAcknowledged')} ? 'invalid'">
+          <label class="check"><input type="checkbox" th:field="*{documentsAcknowledged}" data-rule="check:Please confirm you will bring your original documents"> <span>I will bring my original NIC and driving licence for verification.</span></label>
+          <div class="field-error" th:if="${#fields.hasErrors('documentsAcknowledged')}" th:errors="*{documentsAcknowledged}">Error</div>
+        </div>
+        <div class="form-actions">
+          <button class="btn big" type="submit" data-needs-available>Review my booking</button>
+          <a class="btn ghost big" th:href="@{/vehicles/{id}(id=${card.vehicle.id})}">Back</a>
+        </div>
+      </form>
+
+      <aside class="card sticky-aside">
+        <img th:with="img=${card.vehicle.imageUrl != null and !card.vehicle.imageUrl.isEmpty() ? card.vehicle.imageUrl : '/images/photos/' + #strings.toLowerCase(card.vehicle.type.name()) + '.jpg'}" th:src="@{${img}}" th:alt="${card.vehicle.fullName}" width="1100" height="600" decoding="async" style="width:100%;height:auto;margin-bottom:1rem">
+        <h2 th:text="${card.vehicle.fullName}">Toyota Aqua</h2>
+        <div class="specs mb"><span th:text="${card.vehicle.type.label}">Car</span><span th:text="${card.vehicle.seatingCapacity} + ' seats'">5 seats</span><span th:text="${card.vehicle.fuelType.label}">Hybrid</span></div>
+        <div class="summary-line"><span>Price per day</span><span>LKR <span th:text="${#numbers.formatDecimal(card.vehicle.pricePerDay, 1, 'COMMA', 2, 'POINT')}">9,500.00</span></span></div>
+        <div class="summary-line"><span>Late return</span><span th:text="${lateFeeRule}">10%</span></div>
+        <div class="quote-card" aria-live="polite">
+          <h3 class="line-head">Your price</h3>
+          <div data-quote-body><span class="muted small">Choose your dates to see the price.</span></div>
+          <button class="btn block big" type="submit" form="bookingForm" data-needs-available disabled>Review my booking</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:with="pageTitle='Booking ' + ${booking.reference}">
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('bookings')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <p class="small"><a th:href="${booking.status.open} ? @{/bookings} : @{/bookings/history}" th:text="${booking.status.open} ? 'My bookings' : 'Booking history'">My bookings</a></p>
+    <div class="page-head">
+      <div><h1 th:text="${booking.reference}">BK-2026-00001</h1><p th:text="${booking.vehicleModel} + ' (' + ${booking.vehicleRegNo} + ')'">Toyota Aqua</p></div>
+      <span class="badge" th:classappend="${booking.status.css}" th:text="${booking.status.label}">Confirmed</span>
+    </div>
+
+    <div class="grid sidebar">
+      <div class="stack">
+        <div class="card">
+          <h2>Rental</h2>
+          <div class="summary-line"><span>Pickup date</span><span th:text="${#temporals.format(booking.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</span></div>
+          <div class="summary-line"><span>Agreed return date</span><span th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">13 Oct 2026</span></div>
+          <div class="summary-line" th:if="${booking.actualReturnDate != null}"><span>Returned on</span><span th:text="${#temporals.format(booking.actualReturnDate, 'dd MMM yyyy')}">13 Oct 2026</span></div>
+          <div class="summary-line"><span>Duration</span><span th:text="${booking.rentalDays} + (${booking.rentalDays == 1} ? ' day' : ' days')">3 days</span></div>
+          <th:block th:if="${booking.baseAmount != null}">
+            <div class="summary-line"><span th:text="'Rental (' + ${booking.rentalDays} + (${booking.rentalDays == 1} ? ' day' : ' days') + ' x LKR ' + ${#numbers.formatDecimal(booking.pricePerDay, 1, 'COMMA', 2, 'POINT')} + ')'">Rental (3 days x LKR 9,500.00)</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.baseAmount, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></span></div>
+            <div class="summary-line" th:if="${booking.discountAmount != null and booking.discountAmount.signum() > 0}"><span>Discount</span><span>- LKR <span th:text="${#numbers.formatDecimal(booking.discountAmount, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+            <div class="summary-line" th:if="${booking.driverFee != null and booking.driverFee.signum() > 0}"><span>Driver fee</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.driverFee, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+            <div class="summary-line" th:if="${booking.oneWayFee != null and booking.oneWayFee.signum() > 0}"><span>One-way fee</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.oneWayFee, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+          </th:block>
+          <div class="summary-line" th:unless="${booking.baseAmount != null}"><span>Rental amount</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.totalAmount, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></span></div>
+          <div class="summary-line" th:if="${booking.lateDays > 0}"><span>Late fine (<span th:text="${booking.lateDays} + (${booking.lateDays == 1} ? ' day' : ' days')">1 day</span>)</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.fineAmount, 1, 'COMMA', 2, 'POINT')}">2,850.00</span></span></div>
+          <div class="summary-line total"><span>Total</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.totalPayable, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></span></div>
+        </div>
+        <div class="card">
+          <h2>Trip</h2>
+          <div class="summary-line"><span>Travel</span><span th:text="${booking.withDriver} ? 'With driver' : 'Self drive'">Self drive</span></div>
+          <div class="summary-line"><span>Pickup location</span><span th:text="${booking.pickupLocationName}">Colombo</span></div>
+          <div class="summary-line"><span>Pickup time</span><span th:text="${booking.pickupTime}">09:00</span></div>
+          <div class="summary-line"><span>Drop-off location</span><span th:text="${booking.dropLocationName}">Kandy</span></div>
+          <div class="summary-line" th:if="${booking.withDriver and booking.driverName != null}"><span>Driver</span><span th:text="${booking.driverName} + ' (' + ${booking.driverPhone} + ')'">Name</span></div>
+          <div class="summary-line" th:if="${booking.withDriver and booking.driverName == null}"><span>Driver</span><span class="muted">Assigned after payment</span></div>
+        </div>
+        <div class="card">
+          <h2>Renter</h2>
+          <div class="summary-line"><span>Name</span><span th:text="${booking.renterName}">Name</span></div>
+          <div class="summary-line"><span>NIC</span><span th:text="${booking.nic}">200012345678</span></div>
+          <div class="summary-line"><span>Sex and age</span><span th:text="${booking.sex} + ', ' + ${booking.age}">Male, 25</span></div>
+          <div class="summary-line" th:if="${booking.licenceId != null and !booking.licenceId.isEmpty()}"><span>Licence ID</span><span th:text="${booking.licenceId}">B1234567</span></div>
+          <div class="summary-line"><span>Documents checked</span><span th:text="${booking.docsVerified} ? 'Yes, by ' + ${booking.verifiedBy} : 'Not yet. Bring the originals at pickup.'">Not yet</span></div>
+          <div class="summary-line" th:if="${booking.conditionNote != null}"><span>Return inspection</span><span th:text="${booking.conditionNote}">Clean</span></div>
+        </div>
+        <div class="card flat" th:if="${!payments.isEmpty()}">
+          <div style="padding:1.25rem 1.5rem 0"><h2>Payments</h2></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Date</th><th>Reference</th><th>For</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody><tr th:each="p : ${payments}">
+              <td class="nowrap" th:text="${#temporals.format(p.paidAt, 'dd MMM yyyy HH:mm')}">Date</td>
+              <td><a th:href="@{/payments/{id}/receipt(id=${p.id})}" th:text="${p.reference}">PAY-1</a></td>
+              <td th:text="${p.kind.label}">Rental</td><td th:text="${p.methodDetails}">Visa ending 4242</td>
+              <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(p.amount, 1, 'COMMA', 2, 'POINT')}">1.00</span></td>
+              <td><span class="badge" th:classappend="${p.status.css}" th:text="${p.status.label}">Paid</span></td>
+            </tr></tbody></table></div>
+        </div>
+      </div>
+
+      <aside class="stack">
+        <div class="card">
+          <h3>Progress</h3>
+          <ul class="timeline" th:if="${booking.status.name() != 'CANCELLED'}">
+            <li class="on">Booked</li>
+            <li th:classappend="${#strings.contains('CONFIRMED,ACTIVE,FINE_DUE,COMPLETED', booking.status.name())} ? 'on'">Paid and confirmed</li>
+            <li th:classappend="${#strings.contains('ACTIVE,FINE_DUE,COMPLETED', booking.status.name())} ? 'on'">Collected after document check</li>
+            <li th:classappend="${#strings.contains('FINE_DUE,COMPLETED', booking.status.name())} ? 'on'">Vehicle returned</li>
+            <li th:classappend="${booking.status.name() == 'COMPLETED'} ? 'on'">Completed</li>
+          </ul>
+          <div class="alert warn" style="margin:0" th:if="${booking.status.name() == 'CANCELLED'}">This booking was cancelled.</div>
+        </div>
+        <div class="card stack">
+          <h3>What next</h3>
+          <a class="btn block" th:if="${booking.status.name() == 'PENDING_PAYMENT'}" th:href="@{/payments/booking/{id}(id=${booking.id})}">Pay now</a>
+          <a class="btn danger block" th:if="${booking.status.name() == 'FINE_DUE'}" th:href="@{/payments/booking/{id}(id=${booking.id})}">Pay the late fine</a>
+          <p class="muted small" th:if="${booking.status.name() == 'AWAITING_VERIFICATION'}">We have your bank transfer details. Our team will check the transfer and confirm your booking. You will be notified as soon as it is approved.</p>
+          <a class="btn block" th:if="${booking.status.name() == 'COMPLETED' and !reviewed}" th:href="@{/reviews/new/{id}(id=${booking.id})}">Write a review</a>
+          <p class="muted small" th:if="${booking.status.name() == 'CONFIRMED'}">Collect the vehicle on <strong th:text="${#temporals.format(booking.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</strong> with your original NIC and driving licence.</p>
+          <p class="muted small" th:if="${booking.status.name() == 'ACTIVE'}">Return it by <strong th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">13 Oct 2026</strong>. Late returns cost <span th:text="${lateFeeRule}">10% per day</span>.</p>
+          <form method="post" th:if="${canCancel}" th:action="@{/bookings/{id}/cancel(id=${booking.id})}"
+                data-confirm="Your rental payment (if any) will be refunded." data-confirm-title="Cancel this booking?" data-confirm-button="Cancel booking"
+                data-loader-text="Cancelling your booking" data-loader-sub="Releasing the vehicle">
+            <button class="btn ghost block" type="submit">Cancel booking</button>
+          </form>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

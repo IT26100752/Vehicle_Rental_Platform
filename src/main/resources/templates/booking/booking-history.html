@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Booking history')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('bookings')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<main>
+  <div class="container">
+    <div class="page-head">
+      <div><h1>Booking history</h1><p>Completed and cancelled rentals. Leave a review for the ones you enjoyed.</p></div>
+      <a th:href="@{/bookings}" class="btn ghost">Active bookings</a>
+    </div>
+    <div class="card flat" th:if="${!history.isEmpty()}"><div class="table-wrap"><table>
+      <thead><tr><th>Booking</th><th>Vehicle</th><th>Dates</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="b : ${history}">
+          <td th:text="${b.reference}">BK-2026-00001</td>
+          <td th:text="${b.vehicleModel}">Toyota Aqua</td>
+          <td class="nowrap"><span th:text="${#temporals.format(b.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</span> to <span th:text="${#temporals.format(b.returnDate, 'dd MMM yyyy')}">13 Oct 2026</span></td>
+          <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(b.totalPayable, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></td>
+          <td><span class="badge" th:classappend="${b.status.css}" th:text="${b.status.label}">Completed</span></td>
+          <td class="actions">
+            <a class="btn small ghost" th:href="@{/bookings/{id}(id=${b.id})}">Details</a>
+            <a class="btn small" th:if="${b.status.name() == 'COMPLETED' and !#lists.contains(reviewedIds, b.id)}" th:href="@{/reviews/new/{id}(id=${b.id})}">Write a review</a>
+            <span class="badge done" th:if="${#lists.contains(reviewedIds, b.id)}">Reviewed</span>
+          </td>
+        </tr>
+      </tbody></table></div></div>
+    <div class="empty" th:if="${history.isEmpty()}"><h3>No finished rentals yet</h3><p>Completed and cancelled bookings are listed here.</p></div>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
