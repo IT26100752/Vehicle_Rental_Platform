@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Vehicle form')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('vehicles')}"></aside>
+<div class="admin-main">
+
+<div class="page-head">
+  <div><h1 th:text="${editing} ? 'Edit vehicle' : 'Add a vehicle'">Add a vehicle</h1><p>Car, van, bike or truck, with its daily price and status.</p></div>
+  <a th:href="@{/admin/vehicles}" class="btn ghost">Back to vehicles</a>
+</div>
+<form class="card" method="post" novalidate th:object="${vehicleForm}"
+      th:action="${editing} ? @{/admin/vehicles/{id}/edit(id=${vehicleForm.id})} : @{/admin/vehicles}"
+      data-loader-text="Saving the vehicle" data-loader-sub="Updating the fleet">
+  <div class="alert error" th:if="${#fields.hasGlobalErrors()}">
+  <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div>
+</div>
+  <div class="form-grid">
+    <div class="field" th:classappend="${#fields.hasErrors('type')} ? 'invalid'"><label for="type">Type</label>
+      <select id="type" th:field="*{type}"><option th:each="t : ${types}" th:value="${t}" th:text="${t.label}">Car</option></select>
+      <div class="field-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('brand')} ? 'invalid'"><label for="brand">Brand</label>
+      <input id="brand" th:field="*{brand}" maxlength="40" placeholder="Toyota">
+      <div class="field-error" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('model')} ? 'invalid'"><label for="model">Model</label>
+      <input id="model" th:field="*{model}" required maxlength="60" placeholder="Aqua">
+      <div class="field-error" th:if="${#fields.hasErrors('model')}" th:errors="*{model}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('year')} ? 'invalid'"><label for="year">Year</label>
+      <input id="year" type="number" min="1980" max="2100" th:field="*{year}">
+      <div class="field-error" th:if="${#fields.hasErrors('year')}" th:errors="*{year}">Error</div></div>
+    <div class="field"><label for="transmission">Transmission</label>
+      <select id="transmission" th:field="*{transmission}"><option th:each="t : ${transmissions}" th:value="${t}" th:text="${t.label}">Automatic</option></select></div>
+    <div class="field" th:classappend="${#fields.hasErrors('registrationNo')} ? 'invalid'"><label for="registrationNo">Registration number</label>
+      <input id="registrationNo" th:field="*{registrationNo}" required maxlength="20" placeholder="CAB-1234">
+      <div class="field-error" th:if="${#fields.hasErrors('registrationNo')}" th:errors="*{registrationNo}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('pricePerDay')} ? 'invalid'"><label for="pricePerDay">Price per day (LKR)</label>
+      <input id="pricePerDay" type="number" step="0.01" min="1" th:field="*{pricePerDay}" required>
+      <div class="field-error" th:if="${#fields.hasErrors('pricePerDay')}" th:errors="*{pricePerDay}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('fuelType')} ? 'invalid'"><label for="fuelType">Fuel type</label>
+      <select id="fuelType" th:field="*{fuelType}"><option th:each="f : ${fuels}" th:value="${f}" th:text="${f.label}">Petrol</option></select>
+      <div class="field-error" th:if="${#fields.hasErrors('fuelType')}" th:errors="*{fuelType}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('seatingCapacity')} ? 'invalid'"><label for="seatingCapacity">Seating capacity</label>
+      <input id="seatingCapacity" type="number" min="1" max="60" th:field="*{seatingCapacity}" required>
+      <div class="field-error" th:if="${#fields.hasErrors('seatingCapacity')}" th:errors="*{seatingCapacity}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('status')} ? 'invalid'"><label for="status">Status</label>
+      <select id="status" th:field="*{status}"><th:block th:each="s : ${statuses}"><option th:if="${s.name() != 'RESERVED'}" th:value="${s}" th:text="${s.label}">Available</option></th:block></select>
+      <div class="hint">Reserved is worked out automatically from bookings.</div>
+      <div class="field-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}">Error</div></div>
+    <!-- type specific details: shown only for the chosen type -->
+    <div class="field" data-type-show="CAR,VAN,BIKE,TRUCK"><label for="spec" id="specLabel">Doors</label>
+      <input id="spec" type="number" min="0" th:field="*{spec}"></div>
+    <div class="field" data-type-show="CAR"><label for="boot">Boot space (litres)</label>
+      <input id="boot" type="number" min="0" th:field="*{boot}"></div>
+    <div class="field" data-type-show="VAN,BIKE"><label class="check" style="margin-top:1.7rem"><input type="checkbox" th:field="*{flag}"> <span id="flagLabel">Air conditioned</span></label></div>
+    <div class="field" data-type-show="TRUCK"><label for="bodyKind">Body kind</label>
+      <input id="bodyKind" th:field="*{bodyKind}" maxlength="30" placeholder="Box / Flatbed / Tipper"></div>
+    <div class="field"><label for="imageUrl">Picture</label>
+      <select id="imageUrl" th:field="*{imageUrl}" data-preview="picPreview"><option value="">Default for the type</option><option th:each="e : ${images}" th:value="${e.value}" th:text="${e.key}">Car - white</option></select></div>
+    <div class="field full" th:classappend="${#fields.hasErrors('description')} ? 'invalid'"><label for="description">Description</label>
+      <textarea id="description" th:field="*{description}" maxlength="400"></textarea>
+      <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Error</div></div>
+  </div>
+  <div style="max-width:225px;margin-bottom:1.25rem"><img id="picPreview" th:src="${vehicleForm.imageUrl != null and !vehicleForm.imageUrl.isEmpty()} ? @{${vehicleForm.imageUrl}} : @{/images/photos/car.jpg}" alt="Picture preview" style="background:var(--tarmac-2);border-radius:9px;padding:6px"></div>
+  <div class="form-actions">
+    <button class="btn" type="submit" th:text="${editing} ? 'Save changes' : 'Add vehicle'">Add vehicle</button>
+    <a th:href="@{/admin/vehicles}" class="btn ghost">Cancel</a>
+  </div>
+</form>
+
+</div>
+</div>
+<script>
+(function () {
+  var type = document.getElementById('type');
+  var labels = {CAR: ['Doors', null], VAN: ['Cargo capacity (kg)', 'Air conditioned'],
+                BIKE: ['Engine size (cc)', 'Helmet provided'], TRUCK: ['Max load (kg)', null]};
+  function apply() {
+    var t = type.value;
+    document.querySelectorAll('[data-type-show]').forEach(function (el) {
+      var on = el.getAttribute('data-type-show').split(',').indexOf(t) >= 0;
+      el.style.display = on ? '' : 'none';
+      el.querySelectorAll('input').forEach(function (i) { if (i.type !== 'checkbox') i.disabled = !on; });
+    });
+    document.getElementById('specLabel').textContent = labels[t][0];
+    if (labels[t][1]) document.getElementById('flagLabel').textContent = labels[t][1];
+  }
+  type.addEventListener('change', apply); apply();
+})();
+</script>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
