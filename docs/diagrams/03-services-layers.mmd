@@ -1,0 +1,136 @@
+classDiagram
+direction LR
+
+class CrudRepository~T~ {
+  <<interface>>
+  +create(T) T
+  +findById(Long) Optional~T~
+  +findAll() List~T~
+  +update(T) T
+  +deleteById(Long) boolean
+  +count() long
+}
+class FileRepository~T~ {
+  <<abstract>>
+  #toFields(T)* String[]
+  #fromFields(String[])* T
+  #headerComment()* String
+}
+CrudRepository~T~ <|.. FileRepository~T~
+
+class UserRepository
+class VehicleRepository
+class BookingRepository
+class PaymentRepository
+class ReviewRepository
+class LocationRepository
+class DriverRepository
+class DriverAssignmentRepository
+class ComplaintRepository
+class ComplaintReplyRepository
+class NotificationRepository
+class EmailLogRepository
+class EmailVerificationRepository
+class AdminRepository
+FileRepository~T~ <|-- UserRepository
+FileRepository~T~ <|-- VehicleRepository
+FileRepository~T~ <|-- BookingRepository
+FileRepository~T~ <|-- PaymentRepository
+FileRepository~T~ <|-- ReviewRepository
+FileRepository~T~ <|-- LocationRepository
+FileRepository~T~ <|-- DriverRepository
+FileRepository~T~ <|-- DriverAssignmentRepository
+FileRepository~T~ <|-- ComplaintRepository
+FileRepository~T~ <|-- ComplaintReplyRepository
+FileRepository~T~ <|-- NotificationRepository
+FileRepository~T~ <|-- EmailLogRepository
+FileRepository~T~ <|-- EmailVerificationRepository
+FileRepository~T~ <|-- AdminRepository
+
+class UserService
+class VerificationService
+class VehicleService
+class LocationService
+class BookingService
+class PricingService
+class PaymentService
+class ReceiptService
+class DriverService
+class ReviewService
+class ComplaintService
+class NotificationService
+class DashboardService
+
+UserService --> UserRepository
+VerificationService --> EmailVerificationRepository
+VerificationService --> UserService
+VehicleService --> VehicleRepository
+LocationService --> LocationRepository
+BookingService --> BookingRepository
+BookingService --> VehicleService
+BookingService --> UserService
+BookingService --> LocationService
+BookingService --> PricingService
+PaymentService --> PaymentRepository
+PaymentService --> BookingService
+PaymentService --> ReceiptService
+ReceiptService --> BookingService
+ReceiptService --> VehicleService
+DriverService --> DriverRepository
+DriverService --> DriverAssignmentRepository
+DriverService ..> BookingService : lazy
+ReviewService --> ReviewRepository
+ReviewService --> BookingService
+ComplaintService --> ComplaintRepository
+ComplaintService --> ComplaintReplyRepository
+ComplaintService --> BookingService
+NotificationService --> NotificationRepository
+NotificationService --> AdminRepository
+DashboardService --> BookingService
+DashboardService --> PaymentService
+DashboardService --> ComplaintService
+DashboardService --> DriverService
+DashboardService --> ReviewService
+
+class AuthController
+class VerificationController
+class VehicleController
+class BookingController
+class PaymentController
+class DriverTripController
+class ReviewController
+class ComplaintController
+class NotificationController
+class AdminVehicleController
+class AdminBookingController
+class AdminPaymentController
+class AdminDriverController
+class AdminLocationController
+class AdminReviewController
+class AdminComplaintController
+class AdminUserController
+class AdminEmailController
+class AdminDashboardController
+
+AuthController --> UserService
+AuthController --> VerificationService
+VerificationController --> VerificationService
+VehicleController --> VehicleService
+VehicleController --> BookingService
+BookingController --> BookingService
+PaymentController --> PaymentService
+DriverTripController --> DriverService
+ReviewController --> ReviewService
+ComplaintController --> ComplaintService
+NotificationController --> NotificationService
+AdminVehicleController --> VehicleService
+AdminBookingController --> BookingService
+AdminBookingController --> DriverService
+AdminPaymentController --> PaymentService
+AdminDriverController --> DriverService
+AdminLocationController --> LocationService
+AdminReviewController --> ReviewService
+AdminComplaintController --> ComplaintService
+AdminUserController --> UserService
+AdminEmailController --> EmailLogRepository
+AdminDashboardController --> DashboardService
