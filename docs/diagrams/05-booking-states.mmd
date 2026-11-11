@@ -1,0 +1,16 @@
+stateDiagram-v2
+direction LR
+[*] --> PENDING_PAYMENT : customer books (15 min hold)
+PENDING_PAYMENT --> CONFIRMED : card / wallet / cash paid
+PENDING_PAYMENT --> AWAITING_VERIFICATION : bank transfer submitted
+PENDING_PAYMENT --> CANCELLED : hold expired or cancelled
+AWAITING_VERIFICATION --> CONFIRMED : admin approves transfer
+AWAITING_VERIFICATION --> PENDING_PAYMENT : admin rejects transfer (new hold)
+AWAITING_VERIFICATION --> CANCELLED : cancelled
+CONFIRMED --> ACTIVE : admin verifies NIC and licence at pickup
+CONFIRMED --> CANCELLED : cancelled, payment refunded, driver released
+ACTIVE --> COMPLETED : returned on time
+ACTIVE --> FINE_DUE : returned late
+FINE_DUE --> COMPLETED : fine paid (card or wallet)
+COMPLETED --> [*]
+CANCELLED --> [*]

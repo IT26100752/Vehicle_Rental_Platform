@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Complaints')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('complaints')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Complaints</h1><p>Answer customers, track progress and close the loop.</p></div></div>
+
+<nav class="tabs-bar" aria-label="Complaint status">
+  <a class="tab-link" th:href="@{/admin/complaints(q=${q})}" th:classappend="${status == null} ? 'active'">All <span class="tab-count" th:text="${total}">0</span></a>
+  <a class="tab-link" th:each="s : ${statuses}" th:href="@{/admin/complaints(status=${s},q=${q})}" th:classappend="${status == s} ? 'active'">
+    <span th:text="${s.label}">Open</span> <span class="tab-count" th:text="${counts.get(s)}">0</span></a>
+</nav>
+
+<form class="card mb row" method="get" th:action="@{/admin/complaints}">
+  <input type="hidden" name="status" th:value="${status}" th:if="${status != null}">
+  <div style="flex:2;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Reference, subject or customer"></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/complaints}">Clear</a></div>
+</form>
+
+<div class="card flat tab-panel" th:if="${!complaintList.isEmpty()}"><div class="table-wrap"><table>
+  <thead><tr><th>Reference</th><th>Customer</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Filed</th><th></th></tr></thead>
+  <tbody><tr th:each="c : ${complaintList}">
+    <td th:text="${c.reference}">CMP-1</td><td th:text="${c.customerName}">Name</td><td th:text="${c.subject}">Subject</td>
+    <td th:text="${c.category.label}">Other</td>
+    <td><span class="badge" th:classappend="${c.priority.css}" th:text="${c.priority.label}">Medium</span></td>
+    <td><span class="badge" th:classappend="${c.status.css}" th:text="${c.status.label}">Open</span></td>
+    <td class="nowrap" th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy')}">date</td>
+    <td class="actions"><a class="btn small" th:href="@{/admin/complaints/{id}(id=${c.id})}">Open</a></td>
+  </tr></tbody></table></div></div>
+<div class="empty" th:if="${complaintList.isEmpty()}"><h3>No complaints found</h3><p>Nothing matches this tab or search.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

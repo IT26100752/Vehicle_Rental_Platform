@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Drivers')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('drivers')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Drivers</h1><p>Drivers are assigned automatically to "with driver" bookings once they are paid, and get an email with the trip.</p></div></div>
+<div class="grid sidebar">
+<div class="card flat table-wrap" th:if="${!drivers.isEmpty()}">
+  <table>
+    <thead><tr><th>Driver</th><th>Phone</th><th>Licence</th><th>Status</th><th></th></tr></thead>
+    <tbody><tr th:each="d : ${drivers}">
+      <td><strong th:text="${d.fullName}">Name</strong><div class="small muted" th:text="${d.email} + ' - ' + ${d.languages}">mail</div></td>
+      <td th:text="${d.phone}">077</td><td th:text="${d.licenceNo}">B123</td>
+      <td><span class="badge" th:classappend="${d.status.name() == 'AVAILABLE'} ? 'ok' : 'muted'" th:text="${d.status.label}">Available</span></td>
+      <td class="nowrap"><a class="btn small ghost" th:href="@{/admin/drivers/{id}/edit(id=${d.id})}">Edit</a>
+        <form method="post" style="display:inline" th:action="@{/admin/drivers/{id}/delete(id=${d.id})}" data-confirm="Remove this driver?"><button class="btn small danger" type="submit">Delete</button></form></td>
+    </tr></tbody>
+  </table>
+</div>
+<div class="empty" th:if="${drivers.isEmpty()}"><h3>No drivers yet</h3><p>Add your first driver using the form.</p></div>
+
+<form class="card" method="post" novalidate th:object="${driverForm}"
+      th:action="${editing} ? @{/admin/drivers/{id}/edit(id=${driverForm.id})} : @{/admin/drivers}"
+      data-loader-text="Saving the driver" data-loader-sub="Updating the roster">
+  <h2 style="font-size:1.3rem" th:text="${editing} ? 'Edit driver' : 'Add a driver'">Add a driver</h2>
+  <div class="form-grid">
+    <div class="field" th:classappend="${#fields.hasErrors('fullName')} ? 'invalid'"><label for="fullName">Full name</label>
+      <input id="fullName" th:field="*{fullName}" required maxlength="80">
+      <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('phone')} ? 'invalid'"><label for="phone">Phone</label>
+      <input id="phone" th:field="*{phone}" required maxlength="15" placeholder="0771234567">
+      <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('email')} ? 'invalid'"><label for="email">Email</label>
+      <input id="email" th:field="*{email}" type="email" required maxlength="100">
+      <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('licenceNo')} ? 'invalid'"><label for="licenceNo">Licence number</label>
+      <input id="licenceNo" th:field="*{licenceNo}" required maxlength="15">
+      <div class="field-error" th:if="${#fields.hasErrors('licenceNo')}" th:errors="*{licenceNo}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('languages')} ? 'invalid'"><label for="languages">Languages</label>
+      <input id="languages" th:field="*{languages}" maxlength="60">
+      <div class="field-error" th:if="${#fields.hasErrors('languages')}" th:errors="*{languages}">Error</div></div>
+    <div class="field"><label for="status">Status</label>
+      <select id="status" th:field="*{status}"><option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}">Available</option></select></div>
+  </div>
+  <div class="form-actions"><button class="btn" type="submit" th:text="${editing} ? 'Save changes' : 'Add driver'">Add driver</button>
+    <a class="btn ghost" th:if="${editing}" th:href="@{/admin/drivers}">Cancel</a></div>
+</form>
+</div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

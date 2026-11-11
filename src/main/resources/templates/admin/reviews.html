@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Reviews')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('reviews')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Reviews</h1><p>Hide inappropriate or invalid reviews, or delete them.</p></div><span class="muted" th:text="${reviewList.size()} + ' shown'">3 shown</span></div>
+<form class="card mb row" method="get" th:action="@{/admin/reviews}">
+  <div style="flex:2;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Comment, customer or vehicle"></div>
+  <div style="flex:1;min-width:105px"><label for="rating">Rating</label>
+    <select id="rating" name="rating"><option value="">Any</option><option th:each="n : ${#numbers.sequence(5,1,-1)}" th:value="${n}" th:text="${n} + (${n == 1} ? ' star' : ' stars')" th:selected="${rating != null and rating == n}">5 stars</option></select></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/reviews}">Clear</a></div>
+</form>
+<div class="grid cols-2" th:if="${!reviewList.isEmpty()}">
+  <article class="review" th:each="r : ${reviewList}" th:classappend="${r.hidden} ? 'hidden-review'">
+    <div class="row between"><div><strong th:text="${r.customerName}">Name</strong> <span class="muted">on the</span> <span th:text="${r.vehicleModel}">Car</span></div><span th:replace="~{fragments/layout :: stars(${r.rating})}"></span></div>
+    <blockquote th:text="${r.comment != null} ? ${r.comment} : 'No comment left.'">Comment</blockquote>
+    <div class="small" th:if="${r.adminReply != null}"><strong>Your reply:</strong> <span th:text="${r.adminReply}">Reply</span></div>
+    <form class="inline-form row mb" method="post" th:action="@{/admin/reviews/{id}/reply(id=${r.id})}" data-loader-text="Saving the reply" data-loader-sub="One moment">
+      <input name="reply" maxlength="400" th:value="${r.adminReply}" placeholder="Reply publicly to this review" aria-label="Reply" style="flex:1;min-width:135px">
+      <button class="btn small" type="submit" th:text="${r.adminReply == null} ? 'Reply' : 'Update reply'">Reply</button></form>
+    <div class="row between">
+      <span class="small muted"><span th:text="${#temporals.format(r.createdAt, 'dd MMM yyyy')}">Date</span> <span class="badge warn" th:if="${r.hidden}">Hidden</span> <span class="badge danger" th:if="${r.low}">Low rating</span></span>
+      <div class="row">
+        <form class="inline-form" method="post" th:action="@{/admin/reviews/{id}/hide(id=${r.id})}" data-loader-text="Updating the review" data-loader-sub="One moment">
+          <input type="hidden" name="hidden" th:value="${!r.hidden}"><button class="btn small ghost" type="submit" th:text="${r.hidden} ? 'Show again' : 'Hide'">Hide</button></form>
+        <form class="inline-form" method="post" th:action="@{/admin/reviews/{id}/delete(id=${r.id})}" data-confirm="The review is removed permanently." data-confirm-title="Delete this review?" data-confirm-button="Delete review" data-loader-text="Deleting the review" data-loader-sub="One moment">
+          <button class="btn small danger" type="submit">Delete</button></form>
+      </div>
+    </div>
+  </article>
+</div>
+<div class="empty" th:if="${reviewList.isEmpty()}"><h3>No reviews found</h3><p>Reviews appear after customers complete rentals.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

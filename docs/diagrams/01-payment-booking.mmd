@@ -1,0 +1,265 @@
+classDiagram
+direction LR
+
+class BaseEntity {
+  <<abstract>>
+  -Long id
+  -LocalDateTime createdAt
+}
+
+class Booking {
+  -Long customerId
+  -Long vehicleId
+  -LocalDate pickupDate
+  -LocalDate returnDate
+  -LocalTime pickupTime
+  -boolean withDriver
+  -Long driverId
+  -BigDecimal baseAmount
+  -BigDecimal discountAmount
+  -BigDecimal driverFee
+  -BigDecimal oneWayFee
+  -BigDecimal totalAmount
+  -BigDecimal fineAmount
+  -BookingStatus status
+  -LocalDateTime holdExpiresAt
+  +getReference() String
+  +isOneWay() boolean
+  +isDriverPending() boolean
+  +isCancellableByCustomer(LocalDate) boolean
+}
+class BookingStatus {
+  <<enumeration>>
+  PENDING_PAYMENT
+  AWAITING_VERIFICATION
+  CONFIRMED
+  ACTIVE
+  FINE_DUE
+  COMPLETED
+  CANCELLED
+}
+
+class Payment {
+  <<abstract>>
+  -Long bookingId
+  -Long customerId
+  -BigDecimal amount
+  -PaymentKind kind
+  -PaymentStatus status
+  -String reference
+  -String receiptNo
+  -LocalDateTime paidAt
+  -String failureReason
+  -String verifiedBy
+  +getMethodType()* PaymentMethod
+  +getMethodDetails()* String
+  +isReceiptAvailable() boolean
+}
+class CardPayment {
+  -String cardHolder
+  -String cardLast4
+  -String cardBrand
+}
+class CashPayment {
+  -String receivedBy
+}
+class BankTransferPayment {
+  -String bankName
+  -String slipReference
+  -LocalDate transferDate
+}
+class WalletPayment {
+  -String provider
+  -String mobileMasked
+}
+class PaymentMethod {
+  <<enumeration>>
+  CARD
+  WALLET
+  BANK_TRANSFER
+  CASH
+}
+class PaymentStatus {
+  <<enumeration>>
+  PAID
+  PENDING_VERIFICATION
+  REJECTED
+  FAILED
+  REFUNDED
+}
+class PaymentKind {
+  <<enumeration>>
+  RENTAL
+  FINE
+}
+
+class PaymentProcessor {
+  <<interface>>
+  +method() PaymentMethod
+  +supportsFines() boolean
+  +process(Booking, PaymentForm, BigDecimal, PaymentKind) Payment
+}
+class AbstractPaymentProcessor {
+  <<abstract>>
+  #prepare(Payment, Booking, BigDecimal, PaymentKind)
+  #declined(Payment, String)
+}
+class CardPaymentProcessor
+class WalletPaymentProcessor
+class BankTransferProcessor
+class PaymentForm {
+  -PaymentMethod method
+  -String cardNumber
+  -String walletMobile
+  -String slipReference
+}
+class PaymentFieldException {
+  -Map errors
+}
+
+class PaymentService {
+  +pay(customerId, bookingId, PaymentForm) Payment
+  +recordCash(bookingId, adminName) Payment
+  +approve(paymentId, adminName) Payment
+  +reject(paymentId, adminName, reason) Payment
+  +onBookingCancelled(BookingCancelledEvent)
+  +receiptPdf(Payment) byte[]
+}
+class ReceiptService {
+  +build(Payment) Receipt
+  +pdf(Payment) byte[]
+  +attachment(Payment) EmailAttachment
+}
+class Receipt {
+  -String receiptNo
+  -String statusCode
+  -List~ReceiptLine~ lines
+  -BigDecimal total
+}
+class ReceiptLine {
+  -String label
+  -String detail
+  -BigDecimal amount
+}
+class ReceiptPdfGenerator {
+  +generate(Receipt) byte[]
+}
+
+class BookingService {
+  +createBooking(customerId, BookingForm) Booking
+  +checkAvailability(...) Availability
+  +markPaid(id) Booking
+  +markAwaitingVerification(id) Booking
+  +confirmVerified(id) Booking
+  +rejectVerification(id) Booking
+  +processReturn(id, ReturnForm) Booking
+  +cancelByCustomer(id, customerId) Booking
+}
+class PricingService {
+  +quote(Vehicle, CustomerTier, pickup, days, withDriver, Location, Location) PriceQuote
+}
+class PricingStrategy {
+  <<interface>>
+  +calculate(Vehicle, long days) BigDecimal
+}
+class StandardPricing
+class PremiumPricing
+class DiscountPolicy {
+  <<abstract>>
+  +discountFor(BigDecimal, days, pickup) BigDecimal
+  #isApplicable(days, pickup)* boolean
+  #rate()* BigDecimal
+  +describe()* String
+}
+class LongTermDiscount
+class WeekendDiscount
+class PriceQuote {
+  -List~PriceLine~ lines
+  -BigDecimal total
+}
+class PriceLine {
+  -String label
+  -BigDecimal amount
+}
+class LateFeePolicy {
+  <<interface>>
+  +calculateFine(BigDecimal, long lateDays) BigDecimal
+  +describe() String
+}
+class PercentPerDayLateFeePolicy
+class PremiumLateFeePolicy
+
+class Customer {
+  -CustomerTier tier
+  -boolean emailVerified
+}
+class Vehicle {
+  <<abstract>>
+  -BigDecimal pricePerDay
+  +isDriverAvailable() boolean
+}
+class Location
+class Driver
+class DriverAssignment
+class EmailService {
+  <<interface>>
+  +send(EmailMessage) EmailStatus
+}
+class NotificationService
+class BookingConfirmedEvent
+class BookingCancelledEvent
+
+BaseEntity <|-- Booking
+BaseEntity <|-- Payment
+Payment <|-- CardPayment
+Payment <|-- CashPayment
+Payment <|-- BankTransferPayment
+Payment <|-- WalletPayment
+
+PaymentProcessor <|.. AbstractPaymentProcessor
+AbstractPaymentProcessor <|-- CardPaymentProcessor
+AbstractPaymentProcessor <|-- WalletPaymentProcessor
+AbstractPaymentProcessor <|-- BankTransferProcessor
+PricingStrategy <|.. StandardPricing
+PricingStrategy <|.. PremiumPricing
+DiscountPolicy <|-- LongTermDiscount
+DiscountPolicy <|-- WeekendDiscount
+LateFeePolicy <|.. PercentPerDayLateFeePolicy
+LateFeePolicy <|.. PremiumLateFeePolicy
+
+Customer "1" --> "0..*" Booking : makes
+Vehicle "1" --> "0..*" Booking : is rented in
+Booking "1" --> "0..*" Payment : paid by
+Customer "1" --> "0..*" Payment : pays
+Booking "0..*" --> "0..1" Location : pickup
+Booking "0..*" --> "0..1" Location : drop-off
+Booking "0..*" --> "0..1" Driver : driven by
+Booking "1" --> "0..*" DriverAssignment : has
+Driver "1" --> "0..*" DriverAssignment : takes
+Booking --> BookingStatus
+Payment --> PaymentStatus
+Payment --> PaymentKind
+Payment ..> PaymentMethod : getMethodType
+
+PaymentService o-- "3" PaymentProcessor : strategies
+PaymentService ..> PaymentForm
+PaymentService ..> PaymentFieldException : propagates
+PaymentProcessor ..> PaymentFieldException : throws
+PaymentService --> BookingService
+PaymentService --> ReceiptService
+PaymentService --> EmailService
+PaymentService --> NotificationService
+ReceiptService ..> Receipt : builds
+Receipt "1" *-- "1..*" ReceiptLine
+ReceiptService --> ReceiptPdfGenerator
+ReceiptPdfGenerator ..> Receipt
+
+BookingService --> PricingService
+BookingService --> LateFeePolicy : per tier
+BookingService ..> BookingConfirmedEvent : publishes
+BookingService ..> BookingCancelledEvent : publishes
+PaymentService ..> BookingCancelledEvent : listens, refunds
+PricingService o-- PricingStrategy
+PricingService o-- "*" DiscountPolicy
+PricingService ..> PriceQuote : returns
+PriceQuote "1" *-- "1..*" PriceLine

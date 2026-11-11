@@ -1,0 +1,185 @@
+classDiagram
+direction TB
+
+class BaseEntity {
+  <<abstract>>
+  -Long id
+  -LocalDateTime createdAt
+}
+class Person {
+  <<abstract>>
+  -String fullName
+  -String email
+  -String phone
+  -String passwordHash
+  +getRole()* String
+  +isLoginAllowed() boolean
+}
+class Customer {
+  -String address
+  -String nic
+  -String licenceId
+  -UserStatus status
+  -boolean emailVerified
+  -CustomerTier tier
+}
+class Admin {
+  -String username
+}
+class CustomerTier {
+  <<enumeration>>
+  STANDARD
+  PREMIUM
+}
+class EmailVerification {
+  -Long customerId
+  -String codeHash
+  -LocalDateTime expiresAt
+  -int attempts
+  -LocalDateTime usedAt
+}
+
+class Vehicle {
+  <<abstract>>
+  -String brand
+  -String model
+  -int year
+  -Transmission transmission
+  -String registrationNo
+  -BigDecimal pricePerDay
+  -FuelType fuelType
+  -int seatingCapacity
+  -VehicleStatus status
+  -String imageUrl
+  +getType()* VehicleType
+  +getCapacityInfo()* String
+  +isDriverAvailable() boolean
+  +getFullName() String
+}
+class Car {
+  -int doors
+  -int bootLitres
+}
+class Van {
+  -int cargoKg
+  -boolean airConditioned
+}
+class Bike {
+  -int engineCc
+  -boolean helmetProvided
+}
+class Truck {
+  -int maxLoadKg
+  -String bodyKind
+}
+
+class Location {
+  -String name
+  -String city
+  -String address
+  -boolean active
+}
+class Driver {
+  -String fullName
+  -String phone
+  -String licenceNo
+  -DriverStatus status
+}
+class DriverAssignment {
+  -Long bookingId
+  -Long driverId
+  -AssignmentStatus status
+  -String token
+}
+
+class Booking {
+  -LocalDate pickupDate
+  -LocalDate returnDate
+  -boolean withDriver
+  -BigDecimal totalAmount
+  -BookingStatus status
+}
+class Payment {
+  <<abstract>>
+  -BigDecimal amount
+  -PaymentStatus status
+  -String receiptNo
+}
+class CardPayment
+class CashPayment
+class BankTransferPayment
+class WalletPayment
+
+class Review {
+  -int rating
+  -String comment
+  -boolean hidden
+  -String adminReply
+  +isLow() boolean
+}
+class Complaint {
+  -ComplaintCategory category
+  -String subject
+  -ComplaintStatus status
+  -ComplaintPriority priority
+  +getReference() String
+}
+class ComplaintReply {
+  -String authorRole
+  -String message
+}
+class Notification {
+  -String recipientRole
+  -NotificationType type
+  -String title
+  -boolean read
+}
+class EmailLog {
+  -String toAddress
+  -EmailType type
+  -EmailStatus status
+}
+
+BaseEntity <|-- Person
+Person <|-- Customer
+Person <|-- Admin
+BaseEntity <|-- Vehicle
+Vehicle <|-- Car
+Vehicle <|-- Van
+Vehicle <|-- Bike
+Vehicle <|-- Truck
+BaseEntity <|-- Booking
+BaseEntity <|-- Payment
+Payment <|-- CardPayment
+Payment <|-- CashPayment
+Payment <|-- BankTransferPayment
+Payment <|-- WalletPayment
+BaseEntity <|-- Location
+BaseEntity <|-- Driver
+BaseEntity <|-- DriverAssignment
+BaseEntity <|-- Review
+BaseEntity <|-- Complaint
+BaseEntity <|-- ComplaintReply
+BaseEntity <|-- Notification
+BaseEntity <|-- EmailLog
+BaseEntity <|-- EmailVerification
+
+Customer --> CustomerTier
+Customer "1" --> "0..*" EmailVerification : verifies with
+Customer "1" --> "0..*" Booking : makes
+Vehicle "1" --> "0..*" Booking : rented in
+Booking "0..*" --> "0..1" Location : pickup
+Booking "0..*" --> "0..1" Location : drop-off
+Booking "0..*" --> "0..1" Driver : driven by
+Driver "1" --> "0..*" DriverAssignment
+Booking "1" --> "0..*" DriverAssignment
+Booking "1" --> "0..*" Payment
+Customer "1" --> "0..*" Payment
+Booking "1" --> "0..1" Review : reviewed once
+Customer "1" --> "0..*" Review : writes
+Vehicle "1" --> "0..*" Review : about
+Customer "1" --> "0..*" Complaint : files
+Booking "0..1" <-- "0..*" Complaint : about
+Complaint "1" *-- "0..*" ComplaintReply
+Customer "1" --> "0..*" Notification : receives
+Admin "1" --> "0..*" Notification : shared alerts

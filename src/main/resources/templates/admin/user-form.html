@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Edit customer')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('users')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Edit customer</h1><p th:text="${customer.email}">email</p></div><a class="btn ghost" th:href="@{/admin/users}">Back to customers</a></div>
+<form class="card" method="post" th:action="@{/admin/users/{id}/edit(id=${customer.id})}" th:object="${userForm}" novalidate data-loader-text="Saving the customer" data-loader-sub="One moment">
+  <div class="alert error" th:if="${#fields.hasGlobalErrors()}">
+  <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div>
+</div>
+  <div class="form-grid">
+    <div class="field" th:classappend="${#fields.hasErrors('fullName')} ? 'invalid'"><label for="fullName">Full name</label><input id="fullName" th:field="*{fullName}" required maxlength="80">
+      <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('email')} ? 'invalid'"><label for="email">Email</label><input id="email" type="email" th:field="*{email}" required>
+      <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('phone')} ? 'invalid'"><label for="phone">Phone</label><input id="phone" th:field="*{phone}" required pattern="\+?[0-9 \-]{9,16}">
+      <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</div></div>
+    <div class="field"><label for="tier">Membership</label><select id="tier" th:field="*{tier}"><option th:each="t : ${tiers}" th:value="${t}" th:text="${t.label}">Standard</option></select><div class="hint">Premium: 10% off rentals of 3+ days and a gentler late fee.</div></div>
+    <div class="field"><label class="check"><input type="checkbox" th:field="*{emailVerified}"> <span>Email address verified</span></label><div class="hint">Untick to force the customer to verify again.</div></div>
+    <div class="field"><label for="status">Account status</label><select id="status" th:field="*{status}"><option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}">Active</option></select></div>
+    <div class="field full" th:classappend="${#fields.hasErrors('address')} ? 'invalid'"><label for="address">Address</label><input id="address" th:field="*{address}" maxlength="160">
+      <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Error</div></div>
+  </div>
+  <div class="form-actions"><button class="btn" type="submit">Save changes</button><a class="btn ghost" th:href="@{/admin/users}">Cancel</a></div>
+</form>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Admin dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('dashboard')}"></aside>
+<div class="admin-main">
+
+<div class="page-head">
+  <div><h1>Dashboard</h1><p>The whole rental operation at a glance.</p></div>
+  <div class="row"><a class="btn ghost" th:href="@{/admin/vehicles/new}">Add vehicle</a><a class="btn" th:href="@{/admin/bookings}">Manage bookings</a></div>
+</div>
+
+<div class="welcome-band">
+  <div><strong>Welcome back, <span th:text="${currentUserName}">Admin</span></strong>
+    <span class="badge" th:classappend="${isManager} ? 'warn' : ''" th:text="${isManager} ? 'Manager admin' : 'Admin'">Admin</span></div>
+  <div class="quick">
+    <a th:href="@{/admin/payments(status=PENDING_VERIFICATION)}">Confirm cash &amp; transfers</a>
+    <a th:href="@{/admin/bookings}">Bookings</a>
+    <a th:href="@{/admin/activity}">Activity log</a>
+    <a th:href="@{/admin/admins}">Admin team</a>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><span>Registered customers</span><strong th:text="${stats.totalUsers}">0</strong></div>
+  <div class="kpi"><span>Total vehicles</span><strong th:text="${stats.totalVehicles}">0</strong></div>
+  <div class="kpi"><span>Available vehicles</span><strong th:text="${stats.availableVehicles}">0</strong></div>
+  <div class="kpi"><span>Currently rented</span><strong th:text="${stats.rentedVehicles}">0</strong></div>
+  <div class="kpi accent"><span>Active bookings</span><strong th:text="${stats.activeBookings}">0</strong></div>
+  <div class="kpi"><span>Completed bookings</span><strong th:text="${stats.completedBookings}">0</strong></div>
+  <div class="kpi"><span>Cancelled bookings</span><strong th:text="${stats.cancelledBookings}">0</strong></div>
+  <div class="kpi accent"><span>Revenue today</span><strong>LKR <span th:text="${#numbers.formatDecimal(stats.revenueToday, 1, 'COMMA', 2, 'POINT')}">0.00</span></strong></div>
+</div>
+
+<div class="section-label">Needs your attention</div>
+<div class="grid cols-4 mb attention">
+  <a class="kpi link" th:classappend="${stats.pendingTransfers > 0} ? 'bad'" th:href="@{/admin/payments(status=PENDING_VERIFICATION)}"><span>Transfers &amp; cash to confirm</span><strong th:text="${stats.pendingTransfers}">0</strong></a>
+  <a class="kpi link" th:classappend="${stats.openComplaints > 0} ? 'bad'" th:href="@{/admin/complaints}"><span>Open complaints</span><strong th:text="${stats.openComplaints}">0</strong></a>
+  <a class="kpi link" th:classappend="${stats.unassignedDrivers > 0} ? 'bad'" th:href="@{/admin/bookings}"><span>Bookings without a driver</span><strong th:text="${stats.unassignedDrivers}">0</strong></a>
+  <a class="kpi link" th:classappend="${stats.lowReviews > 0} ? 'bad'" th:href="@{/admin/reviews}"><span>Low reviews not replied to</span><strong th:text="${stats.lowReviews}">0</strong></a>
+</div>
+
+<div class="grid cols-3 mb">
+  <div class="kpi"><span>Waiting for payment</span><strong th:text="${stats.pendingBookings}">0</strong></div>
+  <div class="kpi"><span>Paid, waiting for pickup</span><strong th:text="${stats.confirmedBookings}">0</strong></div>
+  <div class="kpi" th:classappend="${stats.fineDueBookings > 0} ? 'bad'"><span>Late fines to collect</span><strong th:text="${stats.fineDueBookings}">0</strong></div>
+</div>
+
+<div class="grid cols-2 mb">
+  <section class="card">
+    <div class="panel-title"><h2>Revenue, last 7 days</h2><span class="muted small">Today: LKR <span th:text="${#numbers.formatDecimal(stats.revenueToday, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+    <div class="bars">
+      <div class="bar" th:each="p : ${stats.dailyRevenue}">
+        <em th:if="${p.amount.signum() > 0}" th:text="${#numbers.formatInteger(p.amount.intValue(), 1, 'COMMA')}">0</em>
+        <i th:classappend="${p.percent == 0} ? 'zero'" th:style="'height:' + (${p.percent} == 0 ? 3 : ${p.percent}) + '%'"></i>
+        <span th:text="${p.label}">Mon 1</span>
+      </div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="panel-title"><h2>Revenue, last 6 months</h2><span class="muted small">This month: LKR <span th:text="${#numbers.formatDecimal(stats.revenueThisMonth, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+    <div class="bars">
+      <div class="bar" th:each="p : ${stats.monthlyRevenue}">
+        <em th:if="${p.amount.signum() > 0}" th:text="${#numbers.formatInteger(p.amount.intValue(), 1, 'COMMA')}">0</em>
+        <i th:classappend="${p.percent == 0} ? 'zero'" th:style="'height:' + (${p.percent} == 0 ? 3 : ${p.percent}) + '%'"></i>
+        <span th:text="${p.label}">Oct</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="grid cols-2 mb">
+  <section class="card">
+    <h2>Fleet right now</h2>
+    <div class="fleet-split" role="img" th:attr="aria-label=|${stats.availableVehicles} available, ${stats.reservedVehicles} reserved, ${stats.rentedVehicles} rented, ${stats.maintenanceVehicles} in maintenance|">
+      <i th:if="${stats.totalVehicles > 0}" th:style="'width:' + (${stats.availableVehicles} * 100.0 / ${stats.totalVehicles}) + '%;background:var(--signal)'"></i>
+      <i th:if="${stats.totalVehicles > 0}" th:style="'width:' + (${stats.reservedVehicles} * 100.0 / ${stats.totalVehicles}) + '%;background:var(--sky)'"></i>
+      <i th:if="${stats.totalVehicles > 0}" th:style="'width:' + (${stats.rentedVehicles} * 100.0 / ${stats.totalVehicles}) + '%;background:var(--tail)'"></i>
+      <i th:if="${stats.totalVehicles > 0}" th:style="'width:' + (${stats.maintenanceVehicles} * 100.0 / ${stats.totalVehicles}) + '%;background:var(--sodium)'"></i>
+    </div>
+    <div class="legend">
+      <span><b style="background:var(--signal)"></b>Available <strong th:text="${stats.availableVehicles}">0</strong></span>
+      <span><b style="background:var(--sky)"></b>Reserved <strong th:text="${stats.reservedVehicles}">0</strong></span>
+      <span><b style="background:var(--tail)"></b>Rented <strong th:text="${stats.rentedVehicles}">0</strong></span>
+      <span><b style="background:var(--sodium)"></b>Maintenance <strong th:text="${stats.maintenanceVehicles}">0</strong></span>
+    </div>
+    <div class="summary-line mt"><span>Revenue from completed rentals</span><span>LKR <span th:text="${#numbers.formatDecimal(stats.revenueFromCompleted, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+    <div class="summary-line"><span>Total revenue (all paid)</span><span>LKR <span th:text="${#numbers.formatDecimal(stats.revenueTotal, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+  </section>
+  <section class="card">
+    <h2>Most rented vehicles</h2>
+    <div class="hbar" th:each="m : ${stats.mostRented}">
+      <span th:text="${m.vehicleModel}">Toyota Aqua</span>
+      <div class="track"><i th:style="'width:' + ${m.percent} + '%'"></i></div>
+      <strong th:text="${m.rentals}">3</strong>
+    </div>
+    <div class="empty" th:if="${stats.mostRented.isEmpty()}" style="padding:1.5rem"><p>Rental counts appear after the first handover.</p></div>
+  </section>
+</div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

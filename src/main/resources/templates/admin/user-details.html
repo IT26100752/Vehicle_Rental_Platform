@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${customer.fullName})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('users')}"></aside>
+<div class="admin-main">
+
+<p class="small"><a th:href="@{/admin/users}">All customers</a></p>
+<div class="page-head"><div><h1 th:text="${customer.fullName}">Name</h1><p th:text="${customer.email}">email</p></div>
+  <div class="row"><span class="badge" th:classappend="${#strings.toLowerCase(customer.status.name())}" th:text="${customer.status.label}">Active</span>
+  <a class="btn ghost" th:href="@{/admin/users/{id}/edit(id=${customer.id})}">Edit customer</a></div></div>
+<div class="grid sidebar">
+  <div class="card flat"><div style="padding:1.25rem 1.5rem 0"><h2>Bookings</h2></div><div class="table-wrap" th:if="${!orders.isEmpty()}"><table>
+    <thead><tr><th>Booking</th><th>Vehicle</th><th>Dates</th><th>Amount</th><th>Status</th></tr></thead>
+    <tbody><tr th:each="b : ${orders}"><td><a th:href="@{/admin/bookings/{id}(id=${b.id})}" th:text="${b.reference}">BK-1</a></td><td th:text="${b.vehicleModel}">Car</td>
+      <td class="nowrap"><span th:text="${#temporals.format(b.pickupDate, 'dd MMM yyyy')}">1 Oct</span> to <span th:text="${#temporals.format(b.returnDate, 'dd MMM yyyy')}">3 Oct</span></td>
+      <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(b.totalPayable, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+      <td><span class="badge" th:classappend="${b.status.css}" th:text="${b.status.label}">Completed</span></td></tr></tbody></table></div>
+    <div class="empty" style="margin:1.25rem" th:if="${orders.isEmpty()}"><p>No bookings yet.</p></div></div>
+  <div class="card"><h2>Details</h2>
+    <div class="summary-line"><span>Phone</span><span th:text="${customer.phone}">077</span></div>
+    <div class="summary-line"><span>Address</span><span th:text="${customer.address != null} ? ${customer.address} : 'Not given'">Colombo</span></div>
+    <div class="summary-line"><span>NIC</span><span th:text="${customer.nic != null} ? ${customer.nic} : 'No rental yet'">200012345678</span></div>
+    <div class="summary-line"><span>Licence ID</span><span th:text="${customer.licenceId != null} ? ${customer.licenceId} : 'No rental yet'">B1234567</span></div>
+    <div class="summary-line"><span>Joined</span><span th:text="${#temporals.format(customer.createdAt, 'dd MMM yyyy')}">1 Oct 2026</span></div></div>
+</div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

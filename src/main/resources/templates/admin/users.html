@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Customers')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('users')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Customers</h1><p>Search, update, block or remove registered customers.</p></div>
+  <span class="muted" th:text="${users.size()} + ' shown'">3 shown</span></div>
+<form class="card mb row" method="get" th:action="@{/admin/users}">
+  <div style="flex:2;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Name, email, phone or NIC"></div>
+  <div style="flex:1;min-width:120px"><label for="status">Status</label>
+    <select id="status" name="status"><option value="">All</option><option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${status == s}">Active</option></select></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/users}">Clear</a></div>
+</form>
+<div class="card flat" th:if="${!users.isEmpty()}"><div class="table-wrap"><table>
+  <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+  <tbody><tr th:each="u : ${users}">
+    <td><a th:href="@{/admin/users/{id}(id=${u.id})}" th:text="${u.fullName}">Name</a></td>
+    <td th:text="${u.email}">email</td><td th:text="${u.phone}">phone</td>
+    <td class="nowrap" th:text="${#temporals.format(u.createdAt, 'dd MMM yyyy')}">Date</td>
+    <td><span class="badge" th:classappend="${#strings.toLowerCase(u.status.name())}" th:text="${u.status.label}">Active</span></td>
+    <td class="actions">
+      <a class="btn small ghost" th:href="@{/admin/users/{id}/edit(id=${u.id})}">Edit</a>
+      <form class="inline-form" method="post" th:action="@{/admin/users/{id}/block(id=${u.id})}" th:attr="data-confirm=${u.blocked} ? 'The customer will be able to sign in again.' : 'The customer will be signed out and cannot sign in until unblocked.'"
+            th:data-confirm-title="${u.blocked} ? 'Unblock this customer?' : 'Block this customer?'" data-confirm-button="Yes, continue" data-loader-text="Updating the account" data-loader-sub="One moment">
+        <input type="hidden" name="blocked" th:value="${!u.blocked}"><button class="btn small ghost" type="submit" th:text="${u.blocked} ? 'Unblock' : 'Block'">Block</button></form>
+      <form class="inline-form" method="post" th:action="@{/admin/users/{id}/delete(id=${u.id})}" data-confirm="The account is removed permanently. Customers with open bookings cannot be deleted." data-confirm-title="Delete this customer?" data-confirm-button="Delete customer" data-loader-text="Deleting the customer" data-loader-sub="One moment">
+        <button class="btn small danger" type="submit">Delete</button></form>
+    </td></tr></tbody></table></div></div>
+<div class="empty" th:if="${users.isEmpty()}"><h3>No customers found</h3><p>Try a different search or clear the status filter.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

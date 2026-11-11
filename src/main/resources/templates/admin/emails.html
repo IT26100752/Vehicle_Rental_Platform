@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Email log')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('emails')}"></aside>
+<div class="admin-main">
+
+<div class="page-head">
+  <div><h1>Email log</h1><p>Every email the system sent, and whether it arrived.</p></div>
+  <span class="badge" th:classappend="${realMail} ? 'ok' : 'warn'" th:text="${realMail} ? 'Real SMTP mail' : 'Outbox mode (files in data/outbox)'">Outbox mode</span>
+</div>
+
+<div class="alert info" th:if="${!realMail}"><div>Emails are not leaving the server. They are saved as files in <strong>data/outbox</strong>. Set <strong>app.mail.enabled=true</strong> in application.properties to send real mail.</div></div>
+
+<nav class="pill-tabs" aria-label="Filter by status">
+  <a class="pill-tab" th:classappend="${status == null} ? 'active'" th:href="@{/admin/emails}">All <b th:text="${total}">0</b></a>
+  <a class="pill-tab" th:each="s : ${statuses}" th:classappend="${status == s} ? 'active'" th:href="@{/admin/emails(status=${s.name()})}"><span th:text="${s.label}">Sent</span> <b th:text="${counts.get(s)}">0</b></a>
+</nav>
+
+<form class="card mb row" method="get" th:action="@{/admin/emails}">
+  <input type="hidden" name="status" th:value="${status}" th:if="${status != null}">
+  <div style="flex:1;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Recipient or subject"></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/emails}">Clear</a></div>
+</form>
+
+<div class="card flat table-wrap" th:if="${!logs.isEmpty()}">
+  <table>
+    <thead><tr><th>When</th><th>To</th><th>Subject</th><th>Type</th><th>Status</th><th>Via</th><th></th></tr></thead>
+    <tbody>
+      <tr th:each="l : ${logs}">
+        <td class="nowrap small" th:text="${#temporals.format(l.createdAt, 'dd MMM HH:mm:ss')}">01 Nov 10:00</td>
+        <td th:text="${l.toAddress}">user@example.com</td>
+        <td><span th:text="${l.subject}">Subject</span><div class="small muted" th:if="${l.hasAttachments()}" th:text="'Attachment: ' + ${l.attachmentNames}">Attachment</div><div class="err-text" th:if="${l.errorMessage != null}" th:text="${l.errorMessage}">error</div></td>
+        <td th:text="${l.type.label}">Booking</td>
+        <td><span class="badge" th:classappend="${l.status.css}" th:text="${l.status.label}">Sent</span></td>
+        <td class="small muted" th:text="${l.transport}">SMTP</td>
+        <td class="actions">
+          <form class="inline-form" method="post" th:if="${l.failed}" th:action="@{/admin/emails/{id}/retry(id=${l.id})}" data-loader-text="Sending the email again" data-loader-sub="One moment">
+            <button class="btn small" type="submit">Retry</button></form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="empty" th:if="${logs.isEmpty()}"><h3>No emails yet</h3><p>Emails appear here as soon as the system sends one.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

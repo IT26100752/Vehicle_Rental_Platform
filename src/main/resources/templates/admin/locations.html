@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Locations')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('locations')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Locations</h1><p>Branches customers can choose in the pickup and drop-off drop-downs. A different drop-off adds a one-way fee.</p></div></div>
+<div class="grid sidebar">
+<div class="card flat table-wrap" th:if="${!locations.isEmpty()}">
+  <table>
+    <thead><tr><th>Name</th><th>City</th><th>Phone</th><th>Active</th><th></th></tr></thead>
+    <tbody><tr th:each="l : ${locations}">
+      <td><strong th:text="${l.name}">Fort</strong><div class="small muted" th:text="${l.address}">Address</div></td>
+      <td th:text="${l.city}">Colombo</td><td th:text="${l.phone}">011</td>
+      <td><span class="badge" th:classappend="${l.active} ? 'ok' : 'muted'" th:text="${l.active} ? 'Active' : 'Hidden'">Active</span></td>
+      <td class="nowrap"><a class="btn small ghost" th:href="@{/admin/locations/{id}/edit(id=${l.id})}">Edit</a>
+        <form method="post" style="display:inline" th:action="@{/admin/locations/{id}/delete(id=${l.id})}" data-confirm="Remove this location?"><button class="btn small danger" type="submit">Delete</button></form></td>
+    </tr></tbody>
+  </table>
+</div>
+<div class="empty" th:if="${locations.isEmpty()}"><h3>No locations yet</h3><p>Add one using the form.</p></div>
+
+<form class="card" method="post" novalidate th:object="${locationForm}"
+      th:action="${editing} ? @{/admin/locations/{id}/edit(id=${locationForm.id})} : @{/admin/locations}"
+      data-loader-text="Saving the location" data-loader-sub="Updating the list">
+  <h2 style="font-size:1.3rem" th:text="${editing} ? 'Edit location' : 'Add a location'">Add a location</h2>
+  <div class="form-grid">
+    <div class="field" th:classappend="${#fields.hasErrors('name')} ? 'invalid'"><label for="name">Name</label>
+      <input id="name" th:field="*{name}" required maxlength="60" placeholder="Colombo Fort">
+      <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('city')} ? 'invalid'"><label for="city">City</label>
+      <input id="city" th:field="*{city}" required maxlength="40">
+      <div class="field-error" th:if="${#fields.hasErrors('city')}" th:errors="*{city}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('address')} ? 'invalid'"><label for="address">Address</label>
+      <input id="address" th:field="*{address}" maxlength="120">
+      <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('phone')} ? 'invalid'"><label for="phone">Phone</label>
+      <input id="phone" th:field="*{phone}" maxlength="15">
+      <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('latitude')} ? 'invalid'"><label for="latitude">Map latitude (optional)</label>
+      <input id="latitude" type="number" step="0.0001" min="5.8" max="10.0" th:field="*{latitude}" placeholder="6.9344">
+      <div class="hint">Leave blank to place the pin from the city name.</div>
+      <div class="field-error" th:if="${#fields.hasErrors('latitude')}" th:errors="*{latitude}">Error</div></div>
+    <div class="field" th:classappend="${#fields.hasErrors('longitude')} ? 'invalid'"><label for="longitude">Map longitude (optional)</label>
+      <input id="longitude" type="number" step="0.0001" min="79.4" max="82.1" th:field="*{longitude}" placeholder="79.8428">
+      <div class="hint">Right-click a place in Google Maps to copy its numbers.</div>
+      <div class="field-error" th:if="${#fields.hasErrors('longitude')}" th:errors="*{longitude}">Error</div></div>
+    <div class="field"><label class="check" style="margin-top:1.7rem"><input type="checkbox" th:field="*{active}"> <span>Show to customers</span></label></div>
+  </div>
+  <div class="form-actions"><button class="btn" type="submit" th:text="${editing} ? 'Save changes' : 'Add location'">Add location</button>
+    <a class="btn ghost" th:if="${editing}" th:href="@{/admin/locations}">Cancel</a></div>
+</form>
+</div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

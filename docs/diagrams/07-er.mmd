@@ -1,0 +1,61 @@
+erDiagram
+  CUSTOMERS ||--o{ BOOKINGS : makes
+  CUSTOMERS ||--o{ EMAIL_VERIFICATIONS : verifies
+  CUSTOMERS ||--o{ PAYMENTS : pays
+  CUSTOMERS ||--o{ REVIEWS : writes
+  CUSTOMERS ||--o{ COMPLAINTS : files
+  VEHICLES ||--o{ BOOKINGS : "rented in"
+  VEHICLES ||--o{ REVIEWS : "about"
+  LOCATIONS ||--o{ BOOKINGS : "pickup / drop-off"
+  DRIVERS ||--o{ BOOKINGS : drives
+  DRIVERS ||--o{ DRIVER_ASSIGNMENTS : takes
+  BOOKINGS ||--o{ DRIVER_ASSIGNMENTS : has
+  BOOKINGS ||--o{ PAYMENTS : "paid by"
+  BOOKINGS ||--o| REVIEWS : "reviewed once"
+  BOOKINGS ||--o{ COMPLAINTS : "subject of"
+  COMPLAINTS ||--o{ COMPLAINT_REPLIES : thread
+  CUSTOMERS {
+    bigint id PK
+    string email UK
+    enum tier "STANDARD, PREMIUM"
+    bool email_verified
+  }
+  VEHICLES {
+    bigint id PK
+    enum type "CAR, VAN, BIKE, TRUCK"
+    string registration_no UK
+    decimal price_per_day
+  }
+  BOOKINGS {
+    bigint id PK
+    bigint customer_id FK
+    bigint vehicle_id FK
+    bigint pickup_location_id FK
+    bigint drop_location_id FK
+    bigint driver_id FK
+    bool with_driver
+    decimal total_amount
+    enum status
+  }
+  PAYMENTS {
+    bigint id PK
+    bigint booking_id FK
+    enum method "CARD, CASH, BANK, WALLET"
+    enum status "PAID, PENDING_VERIFICATION, REJECTED, FAILED, REFUNDED"
+    string receipt_no
+  }
+  REVIEWS {
+    bigint id PK
+    int rating "1 to 5"
+    string admin_reply
+  }
+  NOTIFICATIONS {
+    bigint id PK
+    enum recipient_role
+    bool is_read
+  }
+  EMAIL_LOG {
+    bigint id PK
+    enum type
+    enum status
+  }

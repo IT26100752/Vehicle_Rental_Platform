@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Manage bookings')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('bookings')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Bookings</h1><p>Confirm, hand over, return and complete rentals.</p></div><span class="muted" th:text="${bookings.size()} + ' shown'">4 shown</span></div>
+<form class="card mb row" method="get" th:action="@{/admin/bookings}">
+  <div style="flex:2;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Booking ID, renter, vehicle, registration or NIC"></div>
+  <div style="flex:1;min-width:135px"><label for="status">Status</label>
+    <select id="status" name="status"><option value="">All statuses</option><option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${status == s}">Active</option></select></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/bookings}">Clear</a></div>
+</form>
+<div class="card flat" th:if="${!bookings.isEmpty()}"><div class="table-wrap"><table data-export="bookings">
+  <thead><tr><th>Booking</th><th>Renter</th><th>Vehicle</th><th>Pickup</th><th>Return</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+  <tbody><tr th:each="b : ${bookings}">
+    <td><a th:href="@{/admin/bookings/{id}(id=${b.id})}" th:text="${b.reference}">BK-1</a></td>
+    <td th:text="${b.renterName}">Name</td>
+    <td><span th:text="${b.vehicleModel}">Car</span><div class="small muted" th:text="${b.vehicleRegNo}">CAB-1</div></td>
+    <td class="nowrap" th:text="${#temporals.format(b.pickupDate, 'dd MMM yyyy')}">1 Oct</td><td class="nowrap" th:text="${#temporals.format(b.returnDate, 'dd MMM yyyy')}">3 Oct</td>
+    <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(b.totalPayable, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+    <td><span class="badge" th:classappend="${b.status.css}" th:text="${b.status.label}">Confirmed</span>
+        <div class="small overdue-text" th:if="${b.isOverdue(today)}">Overdue</div></td>
+    <td class="actions"><a class="btn small ghost" th:href="@{/admin/bookings/{id}(id=${b.id})}">Manage</a></td>
+  </tr></tbody></table></div></div>
+<div class="empty" th:if="${bookings.isEmpty()}"><h3>No bookings found</h3><p>Try another search or status.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

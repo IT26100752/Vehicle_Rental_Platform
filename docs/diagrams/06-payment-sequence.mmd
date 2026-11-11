@@ -1,0 +1,40 @@
+sequenceDiagram
+autonumber
+actor C as Customer
+participant UI as Payment page (JS)
+participant PC as PaymentController
+participant PS as PaymentService
+participant PP as PaymentProcessor (strategy)
+participant BS as BookingService
+participant RS as ReceiptService
+participant ES as EmailService
+participant NS as NotificationService
+actor A as Admin
+C->>UI: choose method, fill details, press Pay
+UI->>UI: show "Verifying your payment" overlay
+UI->>PC: POST /payments/booking/{id}/process
+PC->>PS: pay(customerId, bookingId, form)
+PS->>PP: process(booking, form, amount, kind)
+alt invalid details
+  PP-->>PS: PaymentFieldException(errors)
+  PS-->>UI: JSON ok=false + field errors (overlay shows cross)
+else card or wallet approved
+  PP-->>PS: Payment PAID
+  PS->>BS: markPaid() -> CONFIRMED (+ BookingConfirmedEvent)
+  PS->>RS: attachment(payment) PDF
+  PS->>ES: booking confirmed + receipt PDF
+  PS->>NS: notify customer and admins
+  PS-->>UI: JSON ok=true PAID (overlay shows tick)
+else declined
+  PP-->>PS: Payment FAILED + reason
+  PS-->>UI: JSON ok=false (overlay shows cross)
+else bank transfer
+  PP-->>PS: Payment PENDING_VERIFICATION
+  PS->>BS: markAwaitingVerification()
+  PS->>NS: alert admins "transfer to verify"
+  PS-->>UI: JSON ok=true PENDING (overlay shows clock)
+  A->>PS: approve(paymentId) or reject(paymentId, reason)
+  PS->>BS: confirmVerified() or rejectVerification()
+  PS->>ES: receipt PDF, or rejection email
+end
+UI->>C: redirect to receipt page (download PDF)

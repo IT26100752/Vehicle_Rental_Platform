@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('notifications')}"></aside>
+<div class="admin-main">
+
+<div class="page-head">
+  <div><h1>Notifications</h1><p>New bookings, payments to verify, driver replies, complaints and low reviews.</p></div>
+  <form th:if="${!notifications.isEmpty()}" method="post" th:action="@{/admin/notifications/read-all}" class="inline-form" data-loader-text="Marking as read" data-loader-sub="One moment">
+    <button class="btn ghost" type="submit">Mark all as read</button>
+  </form>
+</div>
+
+<div class="notif-list" th:if="${!notifications.isEmpty()}">
+  <a class="notif" th:each="n : ${notifications}" th:classappend="${!n.read} ? 'unread'" th:href="@{/admin/notifications/{id}/open(id=${n.id})}">
+    <span class="dot" aria-hidden="true"></span>
+    <div>
+      <strong><span class="badge" th:classappend="${n.type.css}" th:text="${n.type.label}">Booking</span> <span th:text="${n.title}">Title</span></strong>
+      <p th:text="${n.message}">Message</p>
+    </div>
+    <time th:text="${#temporals.format(n.createdAt, 'dd MMM, HH:mm')}">01 Nov, 10:00</time>
+  </a>
+</div>
+<div class="empty" th:if="${notifications.isEmpty()}"><h3>Nothing to act on</h3><p>Alerts for the team appear here.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

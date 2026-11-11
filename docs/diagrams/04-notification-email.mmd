@@ -1,0 +1,101 @@
+classDiagram
+direction LR
+class EmailService {
+  <<interface>>
+  +send(EmailMessage) EmailStatus
+  +send(to, subject, body) EmailStatus
+  +isDeliveringRealMail() boolean
+}
+class EmailDispatcher {
+  -boolean async
+  +send(EmailMessage) EmailStatus
+  +resend(Long logId) EmailStatus
+}
+class MailTransport {
+  <<interface>>
+  +deliver(EmailMessage)
+}
+class FileMailTransport {
+  saves to data/outbox
+}
+class SmtpMailTransport {
+  MIME HTML + PDF attachments
+}
+class EmailMessage {
+  -String to
+  -String subject
+  -String htmlBody
+  -EmailType type
+  +withAttachment(EmailAttachment) EmailMessage
+}
+class EmailAttachment {
+  -String filename
+  -byte[] content
+  +pdf(name, bytes)$ EmailAttachment
+}
+class EmailBuilder {
+  +greeting(String)
+  +paragraph(String)
+  +highlight(label, value)
+  +fact(label, value)
+  +button(label, path)
+  +build(to, EmailType) EmailMessage
+}
+class EmailTemplates {
+  +builder(title) EmailBuilder
+}
+class EmailLog
+class EmailLogRepository
+class EmailType {
+  <<enumeration>>
+  VERIFICATION
+  BOOKING
+  PAYMENT
+  RECEIPT
+  DRIVER
+  COMPLAINT
+  REVIEW
+  ADMIN_ALERT
+  GENERAL
+}
+class EmailStatus {
+  <<enumeration>>
+  QUEUED
+  SENT
+  SAVED
+  FAILED
+}
+class NotificationService {
+  +notifyAdmins(type, title, message, link)
+  +notifyCustomer(id, type, title, message, link)
+  +markRead(...)
+  +unreadForAdmins() long
+}
+class Notification
+class NotificationType {
+  <<enumeration>>
+  BOOKING
+  PAYMENT
+  DRIVER
+  COMPLAINT
+  REVIEW
+  ACCOUNT
+  SYSTEM
+}
+
+EmailService <|.. EmailDispatcher
+MailTransport <|.. FileMailTransport
+MailTransport <|.. SmtpMailTransport
+EmailDispatcher --> MailTransport : strategy
+EmailDispatcher --> EmailLogRepository
+EmailLogRepository ..> EmailLog
+EmailDispatcher ..> FileMailTransport : fallback
+EmailMessage "1" *-- "0..*" EmailAttachment
+EmailTemplates ..> EmailBuilder : creates
+EmailBuilder ..> EmailMessage : builds
+EmailMessage --> EmailType
+EmailLog --> EmailStatus
+NotificationService --> EmailService : admin alert mail
+NotificationService --> EmailTemplates
+NotificationService ..> Notification
+Notification --> NotificationType
