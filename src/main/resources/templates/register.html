@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Create account')}"></head>
+<body class="auth-page">
+<div th:replace="~{fragments/layout :: intro}"></div>
+<header th:replace="~{fragments/layout :: navbar('login')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="auth2">
+  <div class="auth2-card wide">
+    <aside class="auth2-show alt">
+      <a class="auth2-brand" th:href="@{/}"><img th:src="@{/images/logo.svg}" alt="" width="34" height="34"><span>DriveLanka Rentals</span></a>
+      <div>
+        <h2>One account for every journey.</h2>
+        <p>Registering takes about a minute. We email you a 6-digit code to confirm your address. Bring your NIC and driving licence only when you collect a vehicle.</p>
+      </div>
+      <img class="auth2-car" th:src="@{/images/van-white.svg}" alt="" aria-hidden="true">
+      <span class="auth2-chip c1"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Email verified</span>
+      <ul class="auth2-points">
+        <li><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Free to join, no card needed to sign up</li>
+        <li><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>Premium tier discounts for returning customers</li>
+        <li><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Your details stay private</li>
+      </ul>
+    </aside>
+
+    <div class="auth2-form">
+      <h1>Create your account</h1>
+      <p class="sub">Tell us a little about yourself to get started.</p>
+      <form th:action="@{/register}" th:object="${registerRequest}" method="post" novalidate data-validate data-loader-text="Creating your account" data-loader-sub="Almost there">
+        <div class="alert error" th:if="${#fields.hasGlobalErrors()}">
+          <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Error</div></div>
+        </div>
+        <div class="form-grid">
+          <div class="field full" th:classappend="${#fields.hasErrors('fullName')} ? 'invalid'">
+            <label for="fullName">Full name</label>
+            <div class="inp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.7-4.2 4-6 8-6s7.3 1.8 8 6"/></svg><input id="fullName" data-rule="name" type="text" th:field="*{fullName}" placeholder="Your full name" autocomplete="name" required minlength="2" maxlength="80"></div>
+            <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('email')} ? 'invalid'">
+            <label for="email">Email address</label>
+            <div class="inp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><input id="email" data-rule="email" type="email" th:field="*{email}" placeholder="you@example.com" autocomplete="email" required></div>
+            <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('phone')} ? 'invalid'">
+            <label for="phone">Phone number</label>
+            <div class="inp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><input id="phone" data-rule="phone" type="tel" th:field="*{phone}" placeholder="0771234567" autocomplete="tel" required pattern="\+?[0-9 \-]{9,16}"></div>
+            <div class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}">Error</div>
+          </div>
+          <div class="field full" th:classappend="${#fields.hasErrors('address')} ? 'invalid'">
+            <label for="address">Address (optional)</label>
+            <div class="inp"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 005 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><input id="address" data-rule="address" type="text" th:field="*{address}" placeholder="Street, city" autocomplete="street-address" maxlength="160"></div>
+            <div class="field-error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('password')} ? 'invalid'">
+            <label for="password">Password</label>
+            <div class="inp pw-wrap"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 018 0v3"/></svg><input id="password" data-rule="password" type="password" th:field="*{password}" autocomplete="new-password" required minlength="8" data-strength="pwMeter"><button type="button" class="pw-toggle">Show</button></div>
+            <div class="strength"><div class="meter"><span id="pwMeter"></span></div></div>
+            <div class="hint">At least 8 characters with a letter and a number.</div>
+            <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Error</div>
+          </div>
+          <div class="field" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'invalid'">
+            <label for="confirmPassword">Confirm password</label>
+            <div class="inp pw-wrap"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 018 0v3"/></svg><input id="confirmPassword" data-rule="match:password" type="password" th:field="*{confirmPassword}" autocomplete="new-password" required ><button type="button" class="pw-toggle">Show</button></div>
+            <div class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">Error</div>
+          </div>
+        </div>
+        <button class="btn block big" type="submit">Create account <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </form>
+      <p class="auth2-switch">Already registered? <a th:href="@{/login}">Sign in</a></p>
+    </div>
+  </div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

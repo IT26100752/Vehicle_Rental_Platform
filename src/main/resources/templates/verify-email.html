@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Verify your email')}"></head>
+<body class="auth-page">
+<header th:replace="~{fragments/layout :: navbar('login')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="auth2">
+  <div class="auth2-card">
+    <aside class="auth2-show alt">
+      <a class="auth2-brand" th:href="@{/}"><img th:src="@{/images/logo.svg}" alt="" width="34" height="34"><span>DriveLanka Rentals</span></a>
+      <div>
+        <h2>One quick check.</h2>
+        <p>We sent a 6-digit code to your email so we know it is really you. The code works for a few minutes only.</p>
+      </div>
+      <img class="auth2-car" th:src="@{/images/car-blue.svg}" alt="" aria-hidden="true">
+    </aside>
+    <div class="auth2-form">
+    <div class="auth2-inner">
+
+      <!-- success -->
+      <div th:if="${verifiedEmail}" class="otp-success" id="otpSuccess">
+        <svg class="otp-tick" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30"/><path d="M23 37l9 9 17-20"/></svg>
+        <h1 style="font-size:1.8rem">Email verified</h1>
+        <p class="muted">Your account is ready. Taking you to sign in...</p>
+        <a class="btn" th:href="@{/login}" id="otpGo">Sign in now</a>
+      </div>
+
+      <!-- unknown / already verified -->
+      <div th:if="${verifiedEmail == null and unknownAccount}">
+        <h1 style="font-size:1.8rem">Account not found</h1>
+        <p class="muted">We could not find that account. <a th:href="@{/register}">Create one</a>.</p>
+      </div>
+      <div th:if="${verifiedEmail == null and alreadyVerified}">
+        <h1 style="font-size:1.8rem">Already verified</h1>
+        <p class="muted">This email is confirmed. <a th:href="@{/login}">Sign in</a>.</p>
+      </div>
+
+      <!-- code entry -->
+      <th:block th:if="${verifiedEmail == null and !unknownAccount and !alreadyVerified}">
+        <h1 style="font-size:1.8rem">Enter your code</h1>
+        <p class="muted">Sent to <strong th:text="${verifyEmailAddress}">you@example.com</strong>. Valid for <span th:text="${codeMinutes}">15</span> minutes.</p>
+        <div class="alert error" th:if="${verifyError}" th:text="${verifyError}">Wrong code</div>
+
+        <form th:action="@{/verify-email}" method="post" id="otpForm" novalidate data-loader-text="Checking your code" data-loader-sub="One moment">
+          <input type="hidden" name="email" th:value="${verifyEmailAddress}">
+          <input type="hidden" name="code" id="otpCode">
+          <div class="otp-inputs" id="otpInputs" role="group" aria-label="6-digit code">
+            <input th:each="i : ${#numbers.sequence(1,6)}" class="otp-digit" type="text" inputmode="numeric" maxlength="6" th:autocomplete="${i == 1} ? 'one-time-code' : 'off'" th:attr="aria-label='Digit ' + ${i}">
+          </div>
+          <button class="btn block big" type="submit" id="otpSubmit" disabled>Verify email</button>
+        </form>
+
+        <form th:action="@{/verify-email/resend}" method="post" class="otp-resend" data-loader-text="Sending a new code" data-loader-sub="Check your inbox">
+          <input type="hidden" name="email" th:value="${verifyEmailAddress}">
+          <button class="btn ghost" type="submit" id="resendBtn" th:attr="data-wait=${resendWait}">Send a new code <span id="resendTimer"></span></button>
+        </form>
+      </th:block>
+    </div>
+    </div>
+  </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script>
+(function () {
+  var ok = document.getElementById('otpSuccess');
+  if (ok) { setTimeout(function () { location.href = document.getElementById('otpGo').href; }, 2600); return; }
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.otp-digit'));
+  var hidden = document.getElementById('otpCode'), submit = document.getElementById('otpSubmit');
+  if (!boxes.length) return;
+  function sync() {
+    var v = boxes.map(function (b) { return b.value; }).join('');
+    hidden.value = v; submit.disabled = v.length !== 6;
+  }
+  function fillAll(d) {
+    boxes.forEach(function (x, k) { x.value = d[k] || ''; x.classList.toggle('filled', !!x.value); });
+    boxes[Math.min(d.length, 5)].focus(); sync();
+  }
+  boxes.forEach(function (b, i) {
+    b.addEventListener('input', function (e) {
+      var digits = b.value.replace(/\D/g, '');
+      if (digits.length > 1 && !(e.inputType === 'insertText' && e.data && e.data.length === 1)) {
+        fillAll(digits.slice(0, 6));              // the whole code arrived at once (autofill or paste)
+        return;
+      }
+      b.value = digits.slice(-1);
+      b.classList.toggle('filled', !!b.value);
+      if (b.value && boxes[i + 1]) boxes[i + 1].focus();
+      sync();
+    });
+    b.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !b.value && boxes[i - 1]) { boxes[i - 1].focus(); boxes[i - 1].value = ''; boxes[i - 1].classList.remove('filled'); sync(); }
+      if (e.key === 'ArrowLeft' && boxes[i - 1]) boxes[i - 1].focus();
+      if (e.key === 'ArrowRight' && boxes[i + 1]) boxes[i + 1].focus();
+    });
+    b.addEventListener('paste', function (e) {
+      var d = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      if (!d) return;
+      e.preventDefault();
+      fillAll(d);
+    });
+  });
+  boxes[0].focus();
+  var btn = document.getElementById('resendBtn'), t = document.getElementById('resendTimer');
+  var left = parseInt(btn.getAttribute('data-wait'), 10) || 0;
+  function tick() {
+    btn.disabled = left > 0; t.textContent = left > 0 ? '(' + left + 's)' : '';
+    if (left > 0) { left--; setTimeout(tick, 1000); }
+  }
+  tick();
+})();
+</script>
+</body>
+</html>
