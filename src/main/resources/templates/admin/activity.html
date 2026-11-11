@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Activity log')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('activity')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Activity log</h1><p>Sign-ins, admin changes and payment decisions by the staff.</p></div>
+  <span class="muted" th:text="${entries.size()} + ' shown'">0 shown</span></div>
+<form class="card mb row" method="get" th:action="@{/admin/activity}">
+  <div style="flex:2;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Admin, action or detail"></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/activity}">Clear</a></div>
+</form>
+<div class="card flat" th:if="${!entries.isEmpty()}"><div class="table-wrap"><table>
+  <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Detail</th></tr></thead>
+  <tbody><tr th:each="e : ${entries}">
+    <td class="nowrap" th:text="${#temporals.format(e.createdAt, 'dd MMM yyyy HH:mm')}">date</td>
+    <td th:text="${e.adminName}">Admin</td><td><span class="badge" th:text="${e.action}">Signed in</span></td><td th:text="${e.detail}">detail</td>
+  </tr></tbody></table></div></div>
+<div class="empty" th:if="${entries.isEmpty()}"><h3>No activity yet</h3><p>Entries appear as admins sign in and make changes.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

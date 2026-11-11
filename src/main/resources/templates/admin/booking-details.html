@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" th:with="pageTitle='Booking ' + ${booking.reference}">
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('bookings')}"></aside>
+<div class="admin-main">
+
+<p class="small"><a th:href="@{/admin/bookings}">All bookings</a></p>
+<div class="page-head">
+  <div><h1 th:text="${booking.reference}">BK-2026-00001</h1><p><span th:text="${booking.vehicleModel}">Car</span> (<span th:text="${booking.vehicleRegNo}">CAB-1</span>)</p></div>
+  <span class="badge" th:classappend="${booking.status.css}" th:text="${booking.status.label}">Confirmed</span>
+</div>
+
+<div class="alert warn" th:if="${booking.isOverdue(today)}">This rental is overdue. It should have been returned on <strong th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">1 Oct</strong>.</div>
+
+<div class="grid sidebar">
+  <div class="stack">
+    <section class="card">
+      <h2>Rental</h2>
+      <div class="summary-line"><span>Pickup date</span><span th:text="${#temporals.format(booking.pickupDate, 'dd MMM yyyy')}">10 Oct 2026</span></div>
+      <div class="summary-line"><span>Agreed return date</span><span th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">13 Oct 2026</span></div>
+      <div class="summary-line" th:if="${booking.actualReturnDate != null}"><span>Returned on</span><span th:text="${#temporals.format(booking.actualReturnDate, 'dd MMM yyyy')}">13 Oct 2026</span></div>
+      <div class="summary-line"><span>Duration</span><span th:text="${booking.rentalDays} + (${booking.rentalDays == 1} ? ' day' : ' days')">3 days</span></div>
+      <div class="summary-line"><span>Price per day</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.pricePerDay, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+      <th:block th:if="${booking.baseAmount != null}">
+        <div class="summary-line"><span th:text="'Rental (' + ${booking.rentalDays} + (${booking.rentalDays == 1} ? ' day' : ' days') + ' x LKR ' + ${#numbers.formatDecimal(booking.pricePerDay, 1, 'COMMA', 2, 'POINT')} + ')'">Rental (3 days x LKR 9,500.00)</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.baseAmount, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></span></div>
+        <div class="summary-line" th:if="${booking.discountAmount != null and booking.discountAmount.signum() > 0}"><span>Discount</span><span>- LKR <span th:text="${#numbers.formatDecimal(booking.discountAmount, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+        <div class="summary-line" th:if="${booking.driverFee != null and booking.driverFee.signum() > 0}"><span>Driver fee</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.driverFee, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+        <div class="summary-line" th:if="${booking.oneWayFee != null and booking.oneWayFee.signum() > 0}"><span>One-way fee</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.oneWayFee, 1, 'COMMA', 2, 'POINT')}">0</span></span></div>
+      </th:block>
+      <div class="summary-line" th:unless="${booking.baseAmount != null}"><span>Rental amount</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.totalAmount, 1, 'COMMA', 2, 'POINT')}">28,500.00</span></span></div>
+      <div class="summary-line" th:if="${booking.lateDays > 0}"><span>Late fine (<span th:text="${booking.lateDays} + (${booking.lateDays == 1} ? ' day' : ' days')">1 day</span>)</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.fineAmount, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+      <div class="summary-line total"><span>Total</span><span>LKR <span th:text="${#numbers.formatDecimal(booking.totalPayable, 1, 'COMMA', 2, 'POINT')}">0.00</span></span></div>
+      <div class="summary-line" th:if="${booking.conditionNote != null}"><span>Return inspection</span><span th:text="${booking.conditionNote}">Clean</span></div>
+    </section>
+
+    <section class="card">
+      <h2>Customer and documents</h2>
+      <div class="grid cols-2">
+        <div>
+          <div class="summary-line"><span>Account</span><a th:href="@{/admin/users/{id}(id=${customer.id})}" th:text="${customer.fullName}">Name</a></div>
+          <div class="summary-line"><span>Email</span><span th:text="${customer.email}">email</span></div>
+          <div class="summary-line"><span>Phone</span><span th:text="${customer.phone}">077</span></div>
+        </div>
+        <div>
+          <div class="summary-line"><span>Renter name</span><strong th:text="${booking.renterName}">Name</strong></div>
+          <div class="summary-line"><span>NIC</span><strong th:text="${booking.nic}">200012345678</strong></div>
+          <div class="summary-line"><span>Licence ID</span><strong th:text="${booking.licenceId != null and !booking.licenceId.isEmpty()} ? ${booking.licenceId} : '-'">B1234567</strong></div>
+          <div class="summary-line"><span>Travel</span><strong th:text="${booking.withDriver} ? 'With driver' : 'Self drive'">Self drive</strong></div>
+          <div class="summary-line"><span>Pickup</span><strong th:text="${booking.pickupLocationName} + ' at ' + ${booking.pickupTime}">Colombo</strong></div>
+          <div class="summary-line"><span>Drop-off</span><strong th:text="${booking.dropLocationName}">Kandy</strong></div>
+          <div class="summary-line" th:if="${booking.withDriver}"><span>Driver</span><strong th:text="${booking.driverName != null} ? ${booking.driverName} + ' (' + ${booking.driverPhone} + ')' : 'Not assigned yet'">Name</strong></div>
+          <div class="summary-line"><span>Sex and age</span><span th:text="${booking.sex} + ', ' + ${booking.age}">Male, 25</span></div>
+          <div class="summary-line"><span>Verified</span><span th:text="${booking.docsVerified} ? 'Yes, by ' + ${booking.verifiedBy} : 'Not yet'">Not yet</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card flat" th:if="${!payments.isEmpty()}">
+      <div style="padding:1.25rem 1.5rem 0"><h2>Payments</h2></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Reference</th><th>For</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody><tr th:each="p : ${payments}">
+          <td class="nowrap" th:text="${#temporals.format(p.paidAt, 'dd MMM yyyy HH:mm')}">Date</td><td th:text="${p.reference}">PAY-1</td><td th:text="${p.kind.label}">Rental</td>
+          <td th:text="${p.methodDetails}">Visa ending 4242</td><td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(p.amount, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+          <td><span class="badge" th:classappend="${p.status.css}" th:text="${p.status.label}">Paid</span></td></tr></tbody></table></div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <!-- driver -->
+    <section class="card stack" th:if="${booking.withDriver and booking.status.name() != 'CANCELLED' and booking.status.name() != 'COMPLETED'}">
+      <h3>Driver</h3>
+      <p class="small" th:if="${booking.driverName != null}"><strong th:text="${booking.driverName}">Name</strong> - <span th:text="${booking.driverPhone}">077</span><br>
+        <span class="muted" th:if="${driverAssignment != null}" th:text="${driverAssignment.status.label}">Assigned</span></p>
+      <p class="small" th:if="${preferredDriver != null or booking.driverNote != null}">
+        <span th:if="${preferredDriver != null}">Customer asked for: <strong th:text="${preferredDriver.fullName}">Name</strong><br></span>
+        <span th:if="${booking.driverNote != null}">Note: <em th:text="${booking.driverNote}">Note</em></span></p>
+      <p class="muted small" th:if="${booking.driverName == null}">No driver yet. They are assigned automatically once the booking is paid, or you can pick one.</p>
+      <form method="post" class="stack" th:action="@{/admin/bookings/{id}/driver(id=${booking.id})}" th:if="${!freeDrivers.isEmpty()}">
+        <select name="driverId" required><option value="">Choose a free driver</option><option th:each="d : ${freeDrivers}" th:value="${d.id}" th:text="${d.fullName}">Name</option></select>
+        <button class="btn block" type="submit" th:text="${booking.driverName == null} ? 'Assign driver' : 'Change driver'">Assign driver</button>
+      </form>
+      <p class="small muted" th:if="${freeDrivers.isEmpty()}">No driver is free on these dates.</p>
+    </section>
+    <!-- waiting for payment -->
+    <section class="card stack" th:if="${booking.status.name() == 'PENDING_PAYMENT'}">
+      <h3>Waiting for payment</h3>
+      <p class="muted small">The customer has <span th:text="${holdMinutes}">15</span> minutes from booking to pay online. You can also take cash at the counter.</p>
+      <form method="post" th:action="@{/admin/bookings/{id}/cash(id=${booking.id})}" data-loader-text="Recording the payment" data-loader-sub="Confirming the booking">
+        <button class="btn good block" type="submit">Record cash payment</button></form>
+    </section>
+
+    <!-- pickup -->
+    <section class="card stack" th:if="${booking.status.name() == 'CONFIRMED'}">
+      <h3>Pickup: verify documents</h3>
+      <p class="muted small">Ask for the <strong>original</strong> NIC and driving licence and compare them with the details on this booking.</p>
+      <div class="notice"><div>NIC: <strong th:text="${booking.nic}">200012345678</strong></div><div>Licence: <strong th:text="${booking.licenceId}">B1234567</strong></div><div>Name: <strong th:text="${booking.renterName}">Name</strong></div></div>
+      <form method="post" th:action="@{/admin/bookings/{id}/activate(id=${booking.id})}" data-loader-text="Handing over the vehicle" data-loader-sub="Booking becomes Active, vehicle becomes Rented">
+        <label class="check mb"><input type="checkbox" name="verified" value="true" required> <span>I checked the original NIC and driving licence and they match this booking.</span></label>
+        <button class="btn block" type="submit">Verify and hand over</button>
+      </form>
+    </section>
+
+    <!-- return -->
+    <section class="card stack" th:if="${booking.status.name() == 'ACTIVE'}">
+      <h3>Return and inspection</h3>
+      <p class="muted small">Agreed return date: <strong th:text="${#temporals.format(booking.returnDate, 'dd MMM yyyy')}">13 Oct 2026</strong>. Late: <span th:text="${lateFeeRule}">10% per day</span>.</p>
+      <form method="post" th:action="@{/admin/bookings/{id}/return(id=${booking.id})}" th:object="${returnForm}" novalidate
+            data-fine-preview th:attr="data-url=@{/admin/bookings/{id}/fine-preview(id=${booking.id})}"
+            data-loader-text="Processing the return" data-loader-sub="Calculating any late fine">
+        <div class="field" th:classappend="${#fields.hasErrors('actualReturnDate')} ? 'invalid'"><label for="actualReturnDate">Date returned</label>
+          <input id="actualReturnDate" type="date" th:field="*{actualReturnDate}" data-actual-date required>
+          <div class="field-error" th:if="${#fields.hasErrors('actualReturnDate')}" th:errors="*{actualReturnDate}">Error</div></div>
+        <div class="fine-out" aria-live="polite"></div>
+        <div class="field" th:classappend="${#fields.hasErrors('conditionNote')} ? 'invalid'"><label for="conditionNote">Vehicle condition</label>
+          <textarea id="conditionNote" th:field="*{conditionNote}" maxlength="300" placeholder="Scratches, fuel level, cleanliness"></textarea>
+          <div class="field-error" th:if="${#fields.hasErrors('conditionNote')}" th:errors="*{conditionNote}">Error</div></div>
+        <label class="check mb"><input type="checkbox" th:field="*{needsMaintenance}"> <span>Needs maintenance before the next rental</span></label>
+        <button class="btn block" type="submit">Complete return</button>
+      </form>
+    </section>
+
+    <!-- fine -->
+    <section class="card stack" th:if="${booking.status.name() == 'FINE_DUE'}">
+      <h3>Late fine due</h3>
+      <p><span th:text="${booking.lateDays} + (${booking.lateDays == 1} ? ' day' : ' days')">1 day</span> late. Fine <strong>LKR <span th:text="${#numbers.formatDecimal(booking.fineAmount, 1, 'COMMA', 2, 'POINT')}">0.00</span></strong> (<span th:text="${lateFeeRule}">10%</span>).</p>
+      <p class="muted small">The customer can pay online from their bookings page, or you can take cash now. The vehicle is already available again.</p>
+      <form method="post" th:action="@{/admin/bookings/{id}/cash(id=${booking.id})}" data-loader-text="Recording the payment" data-loader-sub="Completing the booking">
+        <button class="btn good block" type="submit">Record cash payment of fine</button></form>
+    </section>
+
+    <section class="card stack" th:if="${booking.status.name() == 'PENDING_PAYMENT' or booking.status.name() == 'CONFIRMED' or booking.status.name() == 'ACTIVE'}">
+      <h3>Cancel</h3>
+      <p class="muted small">Cancelling refunds the rental payment and releases the vehicle.</p>
+      <form method="post" th:action="@{/admin/bookings/{id}/cancel(id=${booking.id})}" data-confirm="The rental payment is refunded and the customer is emailed." data-confirm-title="Cancel this booking?" data-confirm-button="Cancel booking" data-loader-text="Cancelling the booking" data-loader-sub="Refunding the payment">
+        <button class="btn danger block" type="submit">Cancel booking</button></form>
+    </section>
+
+    <section class="card stack" th:if="${booking.status.name() == 'COMPLETED' or booking.status.name() == 'CANCELLED'}">
+      <h3>Record</h3>
+      <p class="muted small">This booking is finished. Delete the record only if it was entered by mistake.</p>
+      <form method="post" th:action="@{/admin/bookings/{id}/delete(id=${booking.id})}" data-confirm="The booking record is removed permanently." data-confirm-title="Delete this record?" data-confirm-button="Delete record" data-loader-text="Deleting the record" data-loader-sub="One moment">
+        <button class="btn danger block" type="submit">Delete record</button></form>
+    </section>
+  </aside>
+</div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

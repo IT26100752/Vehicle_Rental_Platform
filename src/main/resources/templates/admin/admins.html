@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Admin team')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('admins')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Admin team</h1><p>Everyone who can sign in to this panel. Only the manager admin can add or delete admins.</p></div>
+  <span class="badge" th:classappend="${isManager} ? 'active' : ''" th:text="${isManager} ? 'You are the manager admin' : 'View only'">View only</span></div>
+
+<div class="grid cols-3 mb">
+  <div class="kpi"><span>Total admins</span><strong th:text="${team.size()}">5</strong></div>
+  <div class="kpi accent"><span>Manager admins</span><strong th:text="${#lists.size(team.?[manager])}">1</strong></div>
+  <div class="kpi"><span>Regular admins</span><strong th:text="${#lists.size(team.?[!manager])}">4</strong></div>
+</div>
+
+<form class="card mb" method="post" th:action="@{/admin/admins}" th:if="${isManager}" autocomplete="off"
+      data-loader-text="Adding the admin" data-loader-sub="One moment">
+  <h2>Add an admin</h2>
+  <div class="form-grid">
+    <div class="field"><label for="a-username">Username</label><input id="a-username" name="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9._\-]{3,20}" placeholder="e.g. admin5"></div>
+    <div class="field"><label for="a-name">Full name</label><input id="a-name" name="fullName" required maxlength="60" placeholder="Full name"></div>
+    <div class="field"><label for="a-email">Email (optional)</label><input id="a-email" name="email" type="email" maxlength="80" placeholder="name@vehiclerental.lk"></div>
+    <div class="field"><label for="a-pass">Password</label><input id="a-pass" name="password" type="password" required minlength="8" placeholder="At least 8 characters" autocomplete="new-password"></div>
+  </div>
+  <button class="btn" type="submit">Add admin</button>
+</form>
+<div class="notice mb" th:unless="${isManager}">Adding, deleting and resetting admins is reserved for the manager admin (<strong>manageradmin</strong>).</div>
+
+<div class="card flat"><div class="table-wrap"><table>
+  <thead><tr><th>Admin</th><th>Username</th><th>Role</th><th>Email</th><th>Last sign-in</th><th></th></tr></thead>
+  <tbody><tr th:each="a : ${team}">
+    <td><strong th:text="${a.fullName}">Name</strong> <span class="badge active" th:if="${a.id == meId}">You</span></td>
+    <td class="nowrap">@<span th:text="${a.username}">admin1</span></td>
+    <td><span class="badge" th:classappend="${a.manager} ? 'warn' : ''" th:text="${a.level.label}">Admin</span></td>
+    <td th:text="${a.email}">email</td>
+    <td class="nowrap" th:text="${a.lastLoginAt != null} ? ${#temporals.format(a.lastLoginAt, 'dd MMM yyyy HH:mm')} : 'Never'">Never</td>
+    <td class="actions">
+      <th:block th:if="${isManager}">
+        <form class="inline-form" method="post" th:action="@{/admin/admins/{id}/reset-password(id=${a.id})}" th:if="${a.id != meId}">
+          <input name="password" type="password" minlength="8" required placeholder="New password" aria-label="New password" autocomplete="new-password">
+          <button class="btn small ghost" type="submit">Reset</button></form>
+        <form class="inline-form" method="post" th:action="@{/admin/admins/{id}/delete(id=${a.id})}" th:if="${!a.manager and a.id != meId}"
+              data-confirm="This admin can no longer sign in." data-confirm-title="Delete this admin?" data-confirm-button="Delete admin"
+              data-loader-text="Deleting the admin" data-loader-sub="One moment">
+          <button class="btn small danger" type="submit">Delete</button></form>
+      </th:block>
+    </td></tr></tbody></table></div></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

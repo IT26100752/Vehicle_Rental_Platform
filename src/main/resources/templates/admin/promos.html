@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Promo codes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('promos')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Promo codes</h1><p>Create discount codes customers can type when they book. The discount applies to the rental part of the price.</p></div></div>
+
+<form class="card mb" method="post" th:action="@{/admin/promos}" autocomplete="off" data-loader-text="Saving the promo code" data-loader-sub="One moment">
+  <h2 th:text="${editing != null} ? 'Edit ' + ${editing.code} : 'New promo code'">New promo code</h2>
+  <input type="hidden" name="id" th:value="${editing?.id}" th:if="${editing != null}">
+  <div class="form-grid">
+    <div class="field"><label for="pc-code">Code</label><input id="pc-code" name="code" required maxlength="20" pattern="[A-Za-z0-9_\-]{3,20}" placeholder="SUMMER15" th:value="${editing?.code}" style="text-transform:uppercase"></div>
+    <div class="field"><label for="pc-pct">Discount (%)</label><input id="pc-pct" name="percentOff" type="number" min="1" max="90" required th:value="${editing != null} ? ${editing.percentOff} : 10"></div>
+    <div class="field"><label for="pc-max">Maximum discount (LKR, 0 = no limit)</label><input id="pc-max" name="maxDiscount" type="number" min="0" step="100" th:value="${editing != null} ? ${editing.maxDiscount} : 0"></div>
+    <div class="field"><label for="pc-lim">Total uses allowed (0 = unlimited)</label><input id="pc-lim" name="usageLimit" type="number" min="0" th:value="${editing != null} ? ${editing.usageLimit} : 0"></div>
+    <div class="field"><label for="pc-from">Valid from</label><input id="pc-from" name="validFrom" type="date" th:value="${editing?.validFrom}"></div>
+    <div class="field"><label for="pc-to">Valid until</label><input id="pc-to" name="validTo" type="date" th:value="${editing?.validTo}"></div>
+    <div class="field full"><label for="pc-desc">Description (shown to the customer)</label><input id="pc-desc" name="description" maxlength="100" placeholder="e.g. Festive season offer" th:value="${editing?.description}"></div>
+    <label class="check"><input type="checkbox" name="premiumOnly" value="true" th:checked="${editing != null and editing.premiumOnly}"> <span>Premium members only</span></label>
+    <label class="check"><input type="checkbox" name="active" value="true" th:checked="${editing == null or editing.active}"> <span>Active</span></label>
+  </div>
+  <div class="row"><button class="btn" type="submit">Save promo code</button><a class="btn ghost" th:if="${editing != null}" th:href="@{/admin/promos}">Cancel</a></div>
+</form>
+
+<div class="card flat" th:if="${!promos.isEmpty()}"><div class="table-wrap"><table>
+  <thead><tr><th>Code</th><th>Discount</th><th>Valid</th><th>Used</th><th>For</th><th>Status</th><th></th></tr></thead>
+  <tbody><tr th:each="p : ${promos}">
+    <td><strong th:text="${p.code}">CODE</strong><div class="small muted" th:text="${p.description}">desc</div></td>
+    <td class="nowrap"><span th:text="${p.percentOff}">10</span>%<span class="small muted" th:if="${p.maxDiscount.signum() > 0}"> (max LKR <span th:text="${#numbers.formatDecimal(p.maxDiscount, 1, 'COMMA', 0, 'POINT')}">0</span>)</span></td>
+    <td class="nowrap small"><span th:text="${p.validFrom != null} ? ${#temporals.format(p.validFrom, 'dd MMM yyyy')} : 'Any time'">from</span> &ndash; <span th:text="${p.validTo != null} ? ${#temporals.format(p.validTo, 'dd MMM yyyy')} : 'No end'">to</span></td>
+    <td class="nowrap"><span th:text="${p.usedCount}">0</span><span th:text="${p.usageLimit > 0} ? ' / ' + ${p.usageLimit} : ''"></span></td>
+    <td><span class="badge warn" th:if="${p.premiumOnly}">Premium</span><span class="badge" th:unless="${p.premiumOnly}">Everyone</span></td>
+    <td><span class="badge" th:classappend="${p.problemFor(true, today) == null} ? 'active' : 'blocked'" th:text="${p.problemFor(true, today) == null} ? 'Live' : (${p.active} ? 'Ended / used up' : 'Paused')">Live</span></td>
+    <td class="actions">
+      <a class="btn small ghost" th:href="@{/admin/promos(edit=${p.id})}">Edit</a>
+      <form class="inline-form" method="post" th:action="@{/admin/promos/{id}/toggle(id=${p.id})}">
+        <input type="hidden" name="active" th:value="${!p.active}"><button class="btn small ghost" type="submit" th:text="${p.active} ? 'Pause' : 'Activate'">Pause</button></form>
+      <form class="inline-form" method="post" th:action="@{/admin/promos/{id}/delete(id=${p.id})}" data-confirm="Bookings that already used this code keep their discount." data-confirm-title="Delete this promo code?" data-confirm-button="Delete" data-loader-text="Deleting" data-loader-sub="One moment">
+        <button class="btn small danger" type="submit">Delete</button></form>
+    </td></tr></tbody></table></div></div>
+<div class="empty" th:if="${promos.isEmpty()}"><h3>No promo codes yet</h3><p>Create the first one above.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

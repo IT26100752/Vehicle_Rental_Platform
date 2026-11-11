@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Manage vehicles')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('vehicles')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Vehicles</h1><p>Add, update, set the status of, or remove vehicles.</p></div>
+  <a class="btn" th:href="@{/admin/vehicles/new}">Add vehicle</a></div>
+<form class="card mb" method="get" th:action="@{/admin/vehicles}" th:object="${filter}">
+  <div class="grid cols-4">
+    <div><label for="keyword">Search</label><input id="keyword" type="search" th:field="*{keyword}" placeholder="Model or registration"></div>
+    <div><label for="type">Type</label><select id="type" th:field="*{type}"><option value="">All types</option><option th:each="t : ${types}" th:value="${t}" th:text="${t.label}">Car</option></select></div>
+    <div><label for="fuelType">Fuel</label><select id="fuelType" th:field="*{fuelType}"><option value="">Any fuel</option><option th:each="f : ${fuels}" th:value="${f}" th:text="${f.label}">Petrol</option></select></div>
+    <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/vehicles}">Clear</a></div>
+  </div>
+</form>
+<div class="card flat" th:if="${!cards.isEmpty()}"><div class="table-wrap"><table>
+  <thead><tr><th>Vehicle</th><th>Registration</th><th>Type</th><th>Seats</th><th>Price per day</th><th>Now</th><th>Set status</th><th></th></tr></thead>
+  <tbody><tr th:each="c : ${cards}">
+    <td><div class="cell-vehicle"><img class="thumb" th:with="img=${c.vehicle.imageUrl != null and !c.vehicle.imageUrl.isEmpty() ? c.vehicle.imageUrl : '/images/photos/' + #strings.toLowerCase(c.vehicle.type.name()) + '.jpg'}" th:src="@{${img}}" alt="" width="48" height="30" loading="lazy" decoding="async"><div><strong th:text="${c.vehicle.fullName}">Model</strong><div class="small muted" th:text="${c.vehicle.fuelType.label}">Hybrid</div></div></div></td>
+    <td th:text="${c.vehicle.registrationNo}">CAB-1</td><td th:text="${c.vehicle.type.label}">Car</td><td th:text="${c.vehicle.seatingCapacity}">5</td>
+    <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(c.vehicle.pricePerDay, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+    <td><span class="badge" th:classappend="${#strings.toLowerCase(c.displayStatus.name())}" th:text="${c.displayStatus.label}">Available</span></td>
+    <td><form class="inline-form" method="post" th:action="@{/admin/vehicles/{id}/status(id=${c.vehicle.id})}" data-confirm="Customers will see the new availability straight away." data-confirm-title="Change this vehicle's status?" data-confirm-button="Change status" data-confirm-reset data-loader-text="Updating the status" data-loader-sub="One moment">
+      <select name="status" style="min-width:112.5px;padding:.45rem .6rem" onchange="this.form.requestSubmit()" aria-label="Set status">
+        <th:block th:each="s : ${statuses}"><option th:if="${s.name() != 'RESERVED'}" th:value="${s}" th:text="${s.label}" th:selected="${c.vehicle.status == s}">Available</option></th:block></select></form></td>
+    <td class="actions"><a class="btn small ghost" th:href="@{/admin/vehicles/{id}/edit(id=${c.vehicle.id})}">Edit</a>
+      <form class="inline-form" method="post" th:action="@{/admin/vehicles/{id}/delete(id=${c.vehicle.id})}" data-confirm="The vehicle is removed from the fleet. Vehicles with open bookings cannot be deleted." data-confirm-title="Remove this vehicle?" data-confirm-button="Remove vehicle" data-loader-text="Removing the vehicle" data-loader-sub="Updating the fleet">
+        <button class="btn small danger" type="submit">Delete</button></form></td>
+  </tr></tbody></table></div></div>
+<div class="empty" th:if="${cards.isEmpty()}"><h3>No vehicles found</h3><p>Add a vehicle or clear the search.</p><a class="btn" th:href="@{/admin/vehicles/new}">Add vehicle</a></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

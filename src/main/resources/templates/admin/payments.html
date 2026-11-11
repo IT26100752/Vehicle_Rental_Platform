@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Payments')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: navbar('admin')}"></header>
+<div th:replace="~{fragments/layout :: flash}"></div>
+<div class="admin-shell">
+<aside th:replace="~{fragments/layout :: sidebar('payments')}"></aside>
+<div class="admin-main">
+
+<div class="page-head"><div><h1>Payments</h1><p>Card, wallet, bank transfer and cash payments, confirmation of transfers and cash, receipts and revenue.</p></div></div>
+<div class="grid cols-2 mb">
+  <div class="kpi accent"><span>Total revenue (all paid)</span><strong>LKR <span th:text="${#numbers.formatDecimal(revenueTotal, 1, 'COMMA', 2, 'POINT')}">0.00</span></strong></div>
+  <div class="kpi"><span>From completed rentals</span><strong>LKR <span th:text="${#numbers.formatDecimal(revenueCompleted, 1, 'COMMA', 2, 'POINT')}">0.00</span></strong></div>
+</div>
+<nav class="tabs-bar" aria-label="Payment status">
+  <a class="tab-link" th:classappend="${status == null} ? 'active'" th:href="@{/admin/payments}">All <span class="tab-count" th:text="${totalCount}">0</span></a>
+  <a class="tab-link" th:each="s : ${statuses}" th:classappend="${status == s} ? 'active'" th:href="@{/admin/payments(status=${s})}"><span th:text="${s.label}">Paid</span> <span class="tab-count" th:text="${counts.get(s)}">0</span></a>
+</nav>
+<form class="card mb row" method="get" th:action="@{/admin/payments}">
+  <input type="hidden" name="status" th:value="${status}" th:if="${status != null}">
+  <div style="flex:2;min-width:165px"><label for="q">Search</label><input id="q" type="search" name="q" th:value="${q}" placeholder="Reference, receipt number, booking number or method"></div>
+  <div style="align-self:flex-end"><button class="btn" type="submit">Search</button> <a class="btn ghost" th:href="@{/admin/payments}">Clear</a></div>
+</form>
+<div class="card flat" th:if="${!payments.isEmpty()}"><div class="table-wrap"><table data-export="payments">
+  <thead><tr><th>Date</th><th>Reference</th><th>Receipt</th><th>Booking</th><th>For</th><th>Method</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+  <tbody><tr th:each="p : ${payments}">
+    <td class="nowrap" th:text="${#temporals.format(p.paidAt, 'dd MMM yyyy HH:mm')}">Date</td><td th:text="${p.reference}">PAY-1</td><td><a th:if="${p.receiptAvailable}" th:href="@{/admin/payments/{id}/receipt(id=${p.id})}" th:text="${p.receiptNo != null} ? ${p.receiptNo} : 'View'">RCT</a><span th:unless="${p.receiptAvailable}" class="muted">-</span></td>
+    <td><a th:href="@{/admin/bookings/{id}(id=${p.bookingId})}" th:text="${p.createdAt != null} ? 'BK-' + ${#temporals.year(p.createdAt)} + '-' + ${#numbers.formatInteger(p.bookingId, 5, 'NONE')} : '#' + ${p.bookingId}">BK-2026-00001</a></td>
+    <td th:text="${p.kind.label}">Rental</td><td><span th:text="${p.methodDetails}">Visa ending 4242</span><div class="small muted" th:if="${p.failureReason != null}" th:text="${p.failureReason}">reason</div></td>
+    <td class="nowrap">LKR <span th:text="${#numbers.formatDecimal(p.amount, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+    <td><span class="badge" th:classappend="${p.status.css}" th:text="${p.status.label}">Paid</span></td>
+    <td class="actions">
+      <div class="stack" th:if="${p.status.name() == 'PENDING_VERIFICATION'}">
+        <form class="inline-form" method="post" th:action="@{/admin/payments/{id}/approve(id=${p.id})}" data-confirm="The booking is confirmed and the receipt is emailed to the customer." data-confirm-title="Confirm this payment?" data-confirm-button="Approve" data-loader-text="Approving the transfer" data-loader-sub="Confirming the booking and emailing the receipt">
+          <button class="btn small good" type="submit" th:text="${p.methodType.name() == 'CASH'} ? 'Cash received' : 'Approve'">Approve</button></form>
+        <form class="inline-form" method="post" th:action="@{/admin/payments/{id}/reject(id=${p.id})}" data-confirm="The customer is told the payment was not received." data-confirm-title="Reject this payment?" data-confirm-button="Reject payment" data-loader-text="Rejecting the transfer" data-loader-sub="Telling the customer">
+          <input name="reason" maxlength="120" placeholder="Reason (optional)" aria-label="Rejection reason"><button class="btn small danger" type="submit">Reject</button></form>
+      </div>
+      <form class="inline-form" method="post" th:unless="${p.status.name() == 'PENDING_VERIFICATION'}" th:action="@{/admin/payments/{id}/delete(id=${p.id})}" data-confirm="The payment record is removed and revenue figures change." data-confirm-title="Delete this payment record?" data-confirm-button="Delete record" data-loader-text="Deleting the record" data-loader-sub="One moment">
+      <button class="btn small danger" type="submit">Delete</button></form></td>
+  </tr></tbody></table></div></div>
+<div class="empty" th:if="${payments.isEmpty()}"><h3>No payments found</h3><p>Payments appear after customers pay for bookings.</p></div>
+
+</div>
+</div>
+<div th:replace="~{fragments/layout :: loader}"></div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
